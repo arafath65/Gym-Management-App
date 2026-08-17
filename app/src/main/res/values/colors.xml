@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- colors.xml -->
+
+    <color name="login_background">#111518</color>
+    <color name="login_card">#1A1F23</color>
+    <color name="login_stroke">#3B434A</color>
+    <color name="card_background">#18201C</color>
+    <color name="border_color">#2A3830</color>
+
+
+    <color name="green_primary">#4CAF50</color>
+    <color name="green_dark">#2E7D32</color>
+    <color name="green_light">#81C784</color>
+
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#C6CDD2</color>
+    <color name="hint">#8B949E</color>
+
+    <color name="background_dark">#111518</color>
+    <color name="sidebar_background">#151A1D</color>
+    <color name="topbar_background">#181D21</color>
+
+
+</resources>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="600dp"
+    android:layout_height="wrap_content"
+    android:padding="35dp"
+    android:background="@drawable/activation_dialog_background">
+
+    <ImageView
+        android:id="@+id/imgActivation"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:src="@drawable/ic_device"
+        android:contentDescription="Device"
+        app:tint="@color/green_dark"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/txtActivationTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:text="Device Activation"
+        android:textColor="@android:color/white"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/imgActivation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/imgActivation" />
+
+    <TextView
+        android:id="@+id/txtActivationDescription"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="This tablet is not registered. Enter the activation code provided by your administrator."
+        android:textColor="@color/text_secondary"
+        android:textSize="15sp"
+        app:layout_constraintStart_toStartOf="@id/txtActivationTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtActivationTitle" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutActivationCode"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:hint="Activation Code"
+        app:boxBackgroundColor="@color/login_card"
+        app:boxCornerRadiusTopStart="18dp"
+        app:boxCornerRadiusTopEnd="18dp"
+        app:boxCornerRadiusBottomStart="18dp"
+        app:boxCornerRadiusBottomEnd="18dp"
+        app:boxStrokeColor="@color/login_stroke"
+        app:boxStrokeWidth="1dp"
+        app:boxStrokeWidthFocused="2dp"
+        app:hintTextColor="@color/hint"
+        app:startIconDrawable="@drawable/ic_key"
+        app:layout_constraintTop_toBottomOf="@id/txtActivationDescription"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/txtActivationCode"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:inputType="textCapCharacters"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/hint"
+            android:background="@null" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/txtDeviceInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Device information will be registered with this activation."
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp"
+        app:layout_constraintTop_toBottomOf="@id/layoutActivationCode"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnActivate"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="25dp"
+        android:text="ACTIVATE DEVICE"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:background="@drawable/login_button"
+        app:icon="@drawable/ic_device"
+        app:iconGravity="textStart"
+        app:iconPadding="10dp"
+        app:iconTint="@android:color/white"
+        app:backgroundTint="@null"
+        app:layout_constraintTop_toBottomOf="@id/txtDeviceInfo"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/login_image"
+    tools:context=".LoginForm.LoginForm">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutTenant"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="450dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginRight="120dp"
+        android:layout_marginTop="250dp"
+        android:hint="Gym / Tenant Code"
+        app:hintTextColor="@color/hint"
+        app:boxBackgroundColor="@color/login_card"
+        app:boxCornerRadiusTopStart="10dp"
+        app:boxCornerRadiusTopEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxStrokeColor="@color/login_stroke"
+        app:boxStrokeWidth="1dp"
+        app:boxStrokeWidthFocused="2dp"
+        app:startIconTint="@color/green_primary"
+        app:startIconDrawable="@drawable/ic_gym">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/txtTenant"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:clickable="false"
+            android:cursorVisible="false"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/hint"
+            android:background="@null"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutUsername"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="450dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginRight="120dp"
+        android:layout_marginTop="15dp"
+        android:hint="Username"
+        app:hintTextColor="@color/hint"
+        app:boxBackgroundColor="@color/login_card"
+        app:boxCornerRadiusTopStart="10dp"
+        app:boxCornerRadiusTopEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxStrokeColor="@color/login_stroke"
+        app:boxStrokeWidth="1dp"
+        app:boxStrokeWidthFocused="2dp"
+        app:startIconTint="@color/green_primary"
+        app:startIconDrawable="@drawable/ic_user">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/txtUsername"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/hint"
+            android:background="@null"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+
+        android:layout_width="450dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginRight="120dp"
+        android:layout_marginTop="15dp"
+        android:hint="Password"
+        app:hintTextColor="@color/hint"
+        app:boxBackgroundColor="@color/login_card"
+        app:boxStrokeColor="@color/login_stroke"
+
+        app:endIconMode="password_toggle"
+        app:startIconTint="@color/green_primary"
+        app:startIconDrawable="@drawable/ic_lock"
+
+        app:boxCornerRadiusTopStart="10dp"
+        app:boxCornerRadiusTopEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+
+            android:id="@+id/txtPassword"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:inputType="textPassword"
+            android:textColor="@color/text_primary"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+
+        android:id="@+id/txtForgot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forgot Password?"
+        android:textColor="@color/green_light"
+        android:layout_gravity="end"
+        android:layout_marginRight="130dp"
+        android:layout_marginTop="20dp"
+        android:textStyle="bold"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLogin"
+        android:layout_width="450dp"
+        android:layout_height="64dp"
+        android:layout_gravity="end"
+        android:layout_marginRight="120dp"
+        android:layout_marginTop="25dp"
+        android:text="SIGN IN"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.05"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+
+        app:icon="@drawable/log_in"
+        app:iconGravity="textStart"
+        app:iconPadding="12dp"
+        app:iconTint="@android:color/white"
+        app:iconSize="24dp"
+        app:backgroundTint="@null"
+        android:background="@drawable/login_button"/>
+
+
+
+</LinearLayout>
