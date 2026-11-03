@@ -1,0 +1,655 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:background="@color/login_background"
+
+    android:fillViewport="true">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:orientation="vertical"
+
+        android:padding="20dp">
+
+
+        <!-- ================================================= -->
+        <!-- TOP BAR                                           -->
+        <!-- ================================================= -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+
+            android:gravity="center_vertical"
+
+            android:orientation="horizontal">
+
+
+            <ImageButton
+                android:id="@+id/btnBack"
+
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+
+                android:background="@drawable/bg_icon_button"
+
+                android:contentDescription="Back"
+
+                android:src="@drawable/ic_arrow_back"/>
+
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+
+                android:layout_weight="1"
+
+                android:layout_marginStart="14dp"
+
+                android:orientation="vertical">
+
+
+                <TextView
+                    android:id="@+id/txtScreenTitle"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="Add Program"
+
+                    android:textColor="@color/text_primary"
+                    android:textSize="20sp"
+                    android:textStyle="bold"/>
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="2dp"
+
+                    android:text="Create and manage gym training programs."
+
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+        <!-- ================================================= -->
+        <!-- PROGRAM INFORMATION                                -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="20dp"
+
+            android:text="Program Information"
+
+            android:textColor="@color/green_light"
+            android:textSize="15sp"
+            android:textStyle="bold"/>
+
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+
+            android:layout_marginTop="6dp"
+
+            android:background="@color/login_stroke"/>
+
+
+        <!-- ================================================= -->
+        <!-- CODE / NAME                                       -->
+        <!-- ================================================= -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            android:orientation="horizontal">
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutProgramCode"
+
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+
+                android:layout_marginEnd="6dp"
+
+                android:layout_weight="1"
+
+                android:hint="Program Code *"
+
+                app:boxBackgroundMode="outline"
+                app:boxStrokeColor="@color/text_input_stroke"
+                app:hintTextColor="@color/text_input_hint">
+
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/txtProgramCode"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+
+                    android:inputType="textCapCharacters"
+
+                    android:maxLines="1"
+
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/hint"
+
+                    android:background="@null"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutProgramName"
+
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+
+                android:layout_marginStart="6dp"
+
+                android:layout_weight="1"
+
+                android:hint="Program Name *"
+
+                app:boxBackgroundMode="outline"
+                app:boxStrokeColor="@color/text_input_stroke"
+                app:hintTextColor="@color/text_input_hint">
+
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/txtProgramName"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+
+                    android:inputType="textCapSentences"
+
+                    android:maxLines="1"
+
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/hint"
+
+                    android:background="@null"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+
+        <!-- ================================================= -->
+        <!-- DURATION                                           -->
+        <!-- ================================================= -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutDuration"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="12dp"
+
+            android:hint="Duration (Days) *"
+
+            app:boxBackgroundMode="outline"
+            app:boxStrokeColor="@color/text_input_stroke"
+            app:hintTextColor="@color/text_input_hint">
+
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtProgramDuration"
+
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+
+                android:inputType="number"
+
+                android:maxLines="1"
+
+                android:textColor="@color/text_primary"
+
+                android:background="@null"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- ================================================= -->
+        <!-- DESCRIPTION                                        -->
+        <!-- ================================================= -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutDescription"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="12dp"
+
+            android:hint="Description"
+
+            app:boxBackgroundMode="outline"
+            app:boxStrokeColor="@color/text_input_stroke"
+            app:hintTextColor="@color/text_input_hint">
+
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtProgramDescription"
+
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+
+                android:gravity="top"
+
+                android:inputType="textMultiLine"
+
+                android:maxLines="5"
+
+                android:textColor="@color/text_primary"
+
+                android:background="@null"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- ================================================= -->
+        <!-- BRANCH ASSIGNMENT                                  -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="22dp"
+
+            android:text="Branch Assignment"
+
+            android:textColor="@color/green_light"
+            android:textSize="15sp"
+            android:textStyle="bold"/>
+
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+
+            android:layout_marginTop="6dp"
+
+            android:background="@color/login_stroke"/>
+
+
+        <!-- ================================================= -->
+        <!-- ALL BRANCHES                                       -->
+        <!-- ================================================= -->
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="12dp"
+
+            app:cardBackgroundColor="@color/login_card"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+
+            app:strokeColor="@color/login_stroke"
+            app:strokeWidth="1dp">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:orientation="vertical"
+
+                android:padding="14dp">
+
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/checkAllBranches"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:text="All Branches"
+
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"/>
+
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginStart="4dp"
+
+                    android:text="Make this program available at every branch using the same fee."
+
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <!-- ================================================= -->
+        <!-- AVAILABLE BRANCHES                                -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            android:text="Available Branches"
+
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold"/>
+
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="8dp"
+
+            app:cardBackgroundColor="@color/login_card"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+
+            app:strokeColor="@color/login_stroke"
+            app:strokeWidth="1dp">
+
+
+            <LinearLayout
+                android:id="@+id/layoutBranchList"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:orientation="vertical"
+
+                android:padding="12dp"/>
+
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <TextView
+            android:id="@+id/txtNoBranches"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="8dp"
+
+            android:gravity="center"
+
+            android:text="No active branches available."
+
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+
+            android:visibility="gone"/>
+
+
+        <!-- ================================================= -->
+        <!-- DEFAULT PRICING                                   -->
+        <!-- ================================================= -->
+
+        <LinearLayout
+            android:id="@+id/layoutDefaultPricing"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:orientation="vertical">
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="18dp"
+
+                android:text="Default Program Fee"
+
+                android:textColor="@color/green_light"
+                android:textSize="14sp"
+                android:textStyle="bold"/>
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutFee"
+
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="8dp"
+
+                android:hint="Program Fee (Rs.) *"
+
+                app:boxBackgroundMode="outline"
+                app:boxStrokeColor="@color/text_input_stroke"
+                app:hintTextColor="@color/text_input_hint">
+
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/txtProgramFee"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+
+                    android:inputType="numberDecimal"
+
+                    android:maxLines="1"
+
+                    android:textColor="@color/text_primary"
+
+                    android:background="@null"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+
+        <!-- ================================================= -->
+        <!-- BRANCH PRICING                                    -->
+        <!-- ================================================= -->
+
+        <LinearLayout
+            android:id="@+id/layoutBranchPricing"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:orientation="vertical"
+
+            android:visibility="gone">
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="18dp"
+
+                android:text="Branch Program Fees"
+
+                android:textColor="@color/green_light"
+                android:textSize="14sp"
+                android:textStyle="bold"/>
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="4dp"
+
+                android:text="Set a separate program fee for each selected branch."
+
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"/>
+
+
+            <LinearLayout
+                android:id="@+id/layoutBranchPricingList"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="10dp"
+
+                android:orientation="vertical"/>
+
+        </LinearLayout>
+
+
+        <!-- ================================================= -->
+        <!-- INFORMATION                                       -->
+        <!-- ================================================= -->
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="20dp"
+
+            app:cardBackgroundColor="@color/login_card"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:orientation="vertical"
+
+                android:padding="14dp">
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="Program Information"
+
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold"/>
+
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="6dp"
+
+                    android:text="A program can be available to all branches or assigned to selected branches with individual fees."
+
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"/>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+
+        <!-- ================================================= -->
+        <!-- BUTTONS                                           -->
+        <!-- ================================================= -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="22dp"
+            android:layout_marginBottom="20dp"
+
+            android:gravity="end"
+
+            android:orientation="horizontal">
+
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancel"
+
+                android:layout_width="120dp"
+                android:layout_height="50dp"
+
+                android:layout_marginEnd="8dp"
+
+                android:background="@drawable/bg_button_secondary"
+
+                android:text="Cancel"
+
+                android:textAllCaps="false"
+
+                android:textColor="@color/green_primary"
+
+                app:backgroundTint="@null"
+                app:cornerRadius="10dp"/>
+
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveProgram"
+
+                android:layout_width="180dp"
+                android:layout_height="52dp"
+
+                android:minWidth="180dp"
+
+                android:text="Save Program"
+
+                android:textAllCaps="false"
+                android:textSize="14sp"
+
+                android:maxLines="1"
+                android:ellipsize="none"
+
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+
+                app:cornerRadius="10dp"
+                app:backgroundTint="@color/green_primary"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

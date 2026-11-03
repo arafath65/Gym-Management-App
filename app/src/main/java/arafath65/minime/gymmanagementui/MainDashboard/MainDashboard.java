@@ -19,8 +19,12 @@ import androidx.fragment.app.Fragment;
 import java.util.ArrayList;
 import java.util.List;
 
+import arafath65.minime.gymmanagementui.MainDashboard.fragment.BenefitsFragment;
 import arafath65.minime.gymmanagementui.MainDashboard.fragment.DashboardFragment;
 import arafath65.minime.gymmanagementui.MainDashboard.fragment.MembersFragment;
+import arafath65.minime.gymmanagementui.MainDashboard.fragment.MembershipPlansFragment;
+import arafath65.minime.gymmanagementui.MainDashboard.fragment.PlansFragment;
+import arafath65.minime.gymmanagementui.MainDashboard.fragment.ProgramsFragment;
 import arafath65.minime.gymmanagementui.Network.ApiClient;
 import arafath65.minime.gymmanagementui.Network.ApiService;
 import arafath65.minime.gymmanagementui.R;
@@ -59,12 +63,31 @@ public class MainDashboard extends AppCompatActivity {
 
     private View navDashboard;
     private View navMembers;
+    private View navMembership;
+    private View navPrograms;
+    private View navBenefits;
+
+
+    // =====================================================
+    // NAVIGATION ICONS
+    // =====================================================
 
     private ImageView iconDashboard;
     private ImageView iconMembers;
+    private ImageView iconMembership;
+    private ImageView iconPrograms;
+    private ImageView iconBenefits;
+
+
+    // =====================================================
+    // NAVIGATION TEXT
+    // =====================================================
 
     private TextView textDashboard;
     private TextView textMembers;
+    private TextView textMembership;
+    private TextView textPrograms;
+    private TextView textBenefits;
 
 
     // =====================================================
@@ -85,7 +108,7 @@ public class MainDashboard extends AppCompatActivity {
 
 
         // =================================================
-        // INITIALIZE
+        // INITIALIZE BRANCH SELECTOR
         // =================================================
 
         txtBranchSelector =
@@ -94,10 +117,15 @@ public class MainDashboard extends AppCompatActivity {
                 );
 
 
+        // =================================================
+        // INITIALIZE NAVIGATION
+        // =================================================
+
         navDashboard =
                 findViewById(
                         R.id.navDashboard
                 );
+
 
         navMembers =
                 findViewById(
@@ -105,10 +133,33 @@ public class MainDashboard extends AppCompatActivity {
                 );
 
 
+        navMembership =
+                findViewById(
+                        R.id.navMembership
+                );
+
+
+        navPrograms =
+                findViewById(
+                        R.id.navPrograms
+                );
+
+
+        navBenefits =
+                findViewById(
+                        R.id.navBenefits
+                );
+
+
+        // =================================================
+        // INITIALIZE ICONS
+        // =================================================
+
         iconDashboard =
                 findViewById(
                         R.id.iconDashboard
                 );
+
 
         iconMembers =
                 findViewById(
@@ -116,15 +167,63 @@ public class MainDashboard extends AppCompatActivity {
                 );
 
 
+        iconMembership =
+                findViewById(
+                        R.id.iconMembership
+                );
+
+
+        iconPrograms =
+                findViewById(
+                        R.id.iconPrograms
+                );
+
+
+        iconBenefits =
+                findViewById(
+                        R.id.iconBenefits
+                );
+
+
+        // =================================================
+        // INITIALIZE TEXT
+        // =================================================
+
         textDashboard =
                 findViewById(
                         R.id.textDashboard
                 );
 
+
         textMembers =
                 findViewById(
                         R.id.textMembers
                 );
+
+
+        textMembership =
+                findViewById(
+                        R.id.textMembership
+                );
+
+
+        textPrograms =
+                findViewById(
+                        R.id.textPrograms
+                );
+
+
+        textBenefits =
+                findViewById(
+                        R.id.textBenefits
+                );
+
+
+        // Plans combines Membership, Programs and Benefits in one screen.
+        // Hide the old standalone navigation rows to avoid duplicate menu items.
+        navPrograms.setVisibility(View.GONE);
+        navBenefits.setVisibility(View.GONE);
+        textMembership.setText("Plans");
 
 
         // =================================================
@@ -173,7 +272,6 @@ public class MainDashboard extends AppCompatActivity {
             return;
         }
 
-
         // =================================================
         // DEFAULT DASHBOARD
         // =================================================
@@ -189,9 +287,8 @@ public class MainDashboard extends AppCompatActivity {
             );
         }
 
-
         // =================================================
-        // NAVIGATION
+        // DASHBOARD NAVIGATION
         // =================================================
 
         navDashboard.setOnClickListener(v -> {
@@ -206,6 +303,9 @@ public class MainDashboard extends AppCompatActivity {
 
         });
 
+        // =================================================
+        // MEMBERS NAVIGATION
+        // =================================================
 
         navMembers.setOnClickListener(v -> {
 
@@ -215,6 +315,57 @@ public class MainDashboard extends AppCompatActivity {
 
             openFragment(
                     new MembersFragment()
+            );
+
+        });
+
+
+        // =================================================
+        // MEMBERSHIP NAVIGATION
+        // =================================================
+
+        navMembership.setOnClickListener(v -> {
+
+            setActiveNavigation(
+                    navMembership
+            );
+
+            openFragment(
+                    new PlansFragment()
+            );
+
+        });
+
+
+        // =================================================
+        // PROGRAMS NAVIGATION
+        // =================================================
+
+        navPrograms.setOnClickListener(v -> {
+
+            setActiveNavigation(
+                    navPrograms
+            );
+
+            openFragment(
+                    new ProgramsFragment()
+            );
+
+        });
+
+
+        // =================================================
+        // BENEFITS NAVIGATION
+        // =================================================
+
+        navBenefits.setOnClickListener(v -> {
+
+            setActiveNavigation(
+                    navBenefits
+            );
+
+            openFragment(
+                    new BenefitsFragment()
             );
 
         });
@@ -285,6 +436,78 @@ public class MainDashboard extends AppCompatActivity {
 
 
         // =================================================
+        // RESET MEMBERSHIP
+        // =================================================
+
+        navMembership.setBackground(null);
+
+        iconMembership.setColorFilter(
+                getColor(
+                        R.color.text_secondary
+                )
+        );
+
+        textMembership.setTextColor(
+                getColor(
+                        R.color.text_secondary
+                )
+        );
+
+        textMembership.setTypeface(
+                null,
+                Typeface.NORMAL
+        );
+
+
+        // =================================================
+        // RESET PROGRAMS
+        // =================================================
+
+        navPrograms.setBackground(null);
+
+        iconPrograms.setColorFilter(
+                getColor(
+                        R.color.text_secondary
+                )
+        );
+
+        textPrograms.setTextColor(
+                getColor(
+                        R.color.text_secondary
+                )
+        );
+
+        textPrograms.setTypeface(
+                null,
+                Typeface.NORMAL
+        );
+
+
+        // =================================================
+        // RESET BENEFITS
+        // =================================================
+
+        navBenefits.setBackground(null);
+
+        iconBenefits.setColorFilter(
+                getColor(
+                        R.color.text_secondary
+                )
+        );
+
+        textBenefits.setTextColor(
+                getColor(
+                        R.color.text_secondary
+                )
+        );
+
+        textBenefits.setTypeface(
+                null,
+                Typeface.NORMAL
+        );
+
+
+        // =================================================
         // DASHBOARD SELECTED
         // =================================================
 
@@ -336,6 +559,93 @@ public class MainDashboard extends AppCompatActivity {
             );
 
             textMembers.setTypeface(
+                    null,
+                    Typeface.BOLD
+            );
+        }
+
+
+        // =================================================
+        // MEMBERSHIP SELECTED
+        // =================================================
+
+        else if (selectedView == navMembership) {
+
+            navMembership.setBackgroundResource(
+                    R.drawable.bg_nav_selected
+            );
+
+            iconMembership.setColorFilter(
+                    getColor(
+                            R.color.green_primary
+                    )
+            );
+
+            textMembership.setTextColor(
+                    getColor(
+                            R.color.text_primary
+                    )
+            );
+
+            textMembership.setTypeface(
+                    null,
+                    Typeface.BOLD
+            );
+        }
+
+
+        // =================================================
+        // PROGRAMS SELECTED
+        // =================================================
+
+        else if (selectedView == navPrograms) {
+
+            navPrograms.setBackgroundResource(
+                    R.drawable.bg_nav_selected
+            );
+
+            iconPrograms.setColorFilter(
+                    getColor(
+                            R.color.green_primary
+                    )
+            );
+
+            textPrograms.setTextColor(
+                    getColor(
+                            R.color.text_primary
+                    )
+            );
+
+            textPrograms.setTypeface(
+                    null,
+                    Typeface.BOLD
+            );
+        }
+
+
+        // =================================================
+        // BENEFITS SELECTED
+        // =================================================
+
+        else if (selectedView == navBenefits) {
+
+            navBenefits.setBackgroundResource(
+                    R.drawable.bg_nav_selected
+            );
+
+            iconBenefits.setColorFilter(
+                    getColor(
+                            R.color.green_primary
+                    )
+            );
+
+            textBenefits.setTextColor(
+                    getColor(
+                            R.color.text_primary
+                    )
+            );
+
+            textBenefits.setTypeface(
                     null,
                     Typeface.BOLD
             );
@@ -653,7 +963,6 @@ public class MainDashboard extends AppCompatActivity {
                                         null,
                                         "All Branches"
                                 );
-                        refreshCurrentFragment();
 
                     } else {
 
@@ -749,10 +1058,38 @@ public class MainDashboard extends AppCompatActivity {
                                 R.id.dashboardContainer
                         );
 
+
         if (fragment instanceof MembersFragment) {
 
             ((MembersFragment) fragment)
                     .refreshMembers();
+        }
+
+
+        if (fragment instanceof arafath65.minime.gymmanagementui.MainDashboard.fragment.PlansFragment) {
+            ((arafath65.minime.gymmanagementui.MainDashboard.fragment.PlansFragment) fragment)
+                    .refreshCurrentTab();
+        }
+
+
+        if (fragment instanceof MembershipPlansFragment) {
+
+            ((MembershipPlansFragment) fragment)
+                    .refreshMembershipPlans();
+        }
+
+
+        if (fragment instanceof ProgramsFragment) {
+
+            ((ProgramsFragment) fragment)
+                    .refreshPrograms();
+        }
+
+
+        if (fragment instanceof BenefitsFragment) {
+
+            ((BenefitsFragment) fragment)
+                    .refreshBenefits();
         }
     }
 

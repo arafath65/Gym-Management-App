@@ -1,20 +1,18 @@
 package com.arafath65.gymManagement.controller;
 
 import com.arafath65.gymManagement.dto.request.MembershipPaymentRequest;
+import com.arafath65.gymManagement.dto.response.MembershipPaymentDetailResponse;
 import com.arafath65.gymManagement.dto.response.MembershipPaymentResponse;
-import com.arafath65.gymManagement.entity.Branch;
-import com.arafath65.gymManagement.entity.MemberMembership;
+import com.arafath65.gymManagement.dto.response.MembershipPaymentSummaryResponse;
 import com.arafath65.gymManagement.entity.MembershipPayment;
-import com.arafath65.gymManagement.entity.MembershipRenewal;
+import com.arafath65.gymManagement.entity.MembershipPaymentDetail;
 import com.arafath65.gymManagement.entity.RegisteredDevice;
 import com.arafath65.gymManagement.entity.Tenant;
 import com.arafath65.gymManagement.exception.BadRequestException;
-import com.arafath65.gymManagement.repository.BranchRepository;
 import com.arafath65.gymManagement.repository.RegisteredDeviceRepository;
 import com.arafath65.gymManagement.repository.TenantRepository;
-import com.arafath65.gymManagement.service.MemberMembershipService;
 import com.arafath65.gymManagement.service.MembershipPaymentService;
-import com.arafath65.gymManagement.service.MembershipRenewalService;
+import com.arafath65.gymManagement.service.PermissionAuthorizationService;
 import com.arafath65.gymManagement.util.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -36,16 +34,11 @@ public class MembershipPaymentController {
 
     private final MembershipPaymentService membershipPaymentService;
 
-    private final MemberMembershipService memberMembershipService;
-
-    private final MembershipRenewalService membershipRenewalService;
+    private final PermissionAuthorizationService permissionAuthorizationService;
 
     private final TenantRepository tenantRepository;
 
-    private final RegisteredDeviceRepository
-            registeredDeviceRepository;
-
-    private final BranchRepository branchRepository;
+    private final RegisteredDeviceRepository registeredDeviceRepository;
 
 
     // =====================================================
@@ -54,20 +47,12 @@ public class MembershipPaymentController {
 
     public MembershipPaymentController(
             MembershipPaymentService membershipPaymentService,
-            MemberMembershipService memberMembershipService,
-            MembershipRenewalService membershipRenewalService,
             TenantRepository tenantRepository,
             RegisteredDeviceRepository registeredDeviceRepository,
-            BranchRepository branchRepository) {
+            PermissionAuthorizationService permissionAuthorizationService) {
 
         this.membershipPaymentService =
                 membershipPaymentService;
-
-        this.memberMembershipService =
-                memberMembershipService;
-
-        this.membershipRenewalService =
-                membershipRenewalService;
 
         this.tenantRepository =
                 tenantRepository;
@@ -75,8 +60,7 @@ public class MembershipPaymentController {
         this.registeredDeviceRepository =
                 registeredDeviceRepository;
 
-        this.branchRepository =
-                branchRepository;
+        this.permissionAuthorizationService = permissionAuthorizationService;
     }
 
 
@@ -98,6 +82,8 @@ public class MembershipPaymentController {
             @Valid
             @RequestBody
             MembershipPaymentRequest request) {
+        permissionAuthorizationService.requirePermission("PAYMENTS_COLLECTION_COLLECT");
+
 
 
         // -------------------------------------------------
@@ -112,112 +98,13 @@ public class MembershipPaymentController {
 
 
         // -------------------------------------------------
-        // LOAD MEMBERSHIP
-        // -------------------------------------------------
-
-        MemberMembership membership =
-                memberMembershipService
-                        .findById(
-                                request.getMemberMembershipId()
-                        )
-                        .orElseThrow(() ->
-                                new BadRequestException(
-                                        "Membership not found."
-                                )
-                        );
-
-
-        validateMembership(
-                tenant,
-                membership
-        );
-
-
-        // -------------------------------------------------
-        // BUILD PAYMENT
+        // CREATE PAYMENT
         // -------------------------------------------------
 
         MembershipPayment payment =
-                new MembershipPayment();
-
-        payment.setTenant(
-                tenant
-        );
-
-        payment.setBranch(
-                membership.getBranch()
-        );
-
-        payment.setMember(
-                membership.getMember()
-        );
-
-        payment.setMemberMembership(
-                membership
-        );
-
-        payment.setAmount(
-                request.getAmount()
-        );
-
-        payment.setPaymentMethod(
-                request.getPaymentMethod()
-        );
-
-        payment.setPaymentDate(
-                request.getPaymentDate()
-        );
-
-        payment.setReferenceNumber(
-                request.getReferenceNumber()
-        );
-
-        payment.setNotes(
-                request.getNotes()
-        );
-
-
-        // -------------------------------------------------
-        // RENEWAL PAYMENT
-        // -------------------------------------------------
-
-        if (request.getMembershipRenewalId() != null) {
-
-            MembershipRenewal renewal =
-                    membershipRenewalService
-                            .findById(
-                                    request.getMembershipRenewalId()
-                            )
-                            .orElseThrow(() ->
-                                    new BadRequestException(
-                                            "Membership renewal not found."
-                                    )
-                            );
-
-
-            if (renewal.getMemberMembership()
-                    .getMemberMembershipId()
-                    != membership.getMemberMembershipId()) {
-
-                throw new BadRequestException(
-                        "Renewal does not belong to this membership."
-                );
-            }
-
-
-            payment.setMembershipRenewal(
-                    renewal
-            );
-        }
-
-
-        // -------------------------------------------------
-        // SAVE
-        // -------------------------------------------------
-
-        MembershipPayment savedPayment =
-                membershipPaymentService.save(
-                        payment
+                membershipPaymentService.createPayment(
+                        tenant.getTenantId(),
+                        request
                 );
 
 
@@ -226,23 +113,80 @@ public class MembershipPaymentController {
         // -------------------------------------------------
 
         MembershipPaymentResponse response =
-                toResponse(
-                        savedPayment
-                );
+                mapToResponse(payment);
 
 
-        ApiResponse<MembershipPaymentResponse>
-                apiResponse =
+        return new ResponseEntity<>(
                 new ApiResponse<>(
                         true,
                         "Membership payment created successfully.",
                         response
+                ),
+                HttpStatus.CREATED
+        );
+    }
+
+
+    // =====================================================
+    // GET PAYMENTS BY BILLING CYCLE
+    // =====================================================
+
+    @GetMapping("/billing-cycle/{membershipBillingCycleId}")
+    public ResponseEntity<
+            ApiResponse<List<MembershipPaymentResponse>>>
+    getByBillingCycle(
+
+            @RequestHeader("X-Tenant-No")
+            String tenantNo,
+
+            @RequestHeader("X-Device-Token")
+            String deviceToken,
+
+            @PathVariable
+            Integer membershipBillingCycleId) {
+        permissionAuthorizationService.requirePermission("PAYMENTS_COLLECTION_VIEW");
+
+
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
+
+        Tenant tenant =
+                validateTenantAndDevice(
+                        tenantNo,
+                        deviceToken
                 );
 
 
-        return new ResponseEntity<>(
-                apiResponse,
-                HttpStatus.CREATED
+        // -------------------------------------------------
+        // FIND PAYMENTS
+        // -------------------------------------------------
+
+        List<MembershipPayment> payments =
+                membershipPaymentService
+                        .findByBillingCycle(
+                                tenant.getTenantId(),
+                                membershipBillingCycleId
+                        );
+
+
+        // -------------------------------------------------
+        // MAP RESPONSE
+        // -------------------------------------------------
+
+        List<MembershipPaymentResponse> responses =
+                payments.stream()
+                        .map(this::mapToResponse)
+                        .collect(Collectors.toList());
+
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Billing cycle payments loaded successfully.",
+                        responses
+                )
         );
     }
 
@@ -254,7 +198,7 @@ public class MembershipPaymentController {
     @GetMapping("/{paymentId}")
     public ResponseEntity<
             ApiResponse<MembershipPaymentResponse>>
-    getPaymentById(
+    getPayment(
 
             @RequestHeader("X-Tenant-No")
             String tenantNo,
@@ -264,7 +208,13 @@ public class MembershipPaymentController {
 
             @PathVariable
             Integer paymentId) {
+        permissionAuthorizationService.requirePermission("PAYMENTS_COLLECTION_VIEW");
 
+
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -273,39 +223,33 @@ public class MembershipPaymentController {
                 );
 
 
+        // -------------------------------------------------
+        // FIND PAYMENT
+        // -------------------------------------------------
+
         MembershipPayment payment =
                 membershipPaymentService
                         .findById(
+                                tenant.getTenantId(),
                                 paymentId
                         )
                         .orElseThrow(() ->
                                 new BadRequestException(
-                                        "Payment not found."
+                                        "Membership payment not found."
                                 )
                         );
 
 
-        if (payment.getTenant()
-                .getTenantId()
-                != tenant.getTenantId()) {
-
-            throw new BadRequestException(
-                    "Payment does not belong to this tenant."
-            );
-        }
-
-
-        ApiResponse<MembershipPaymentResponse>
-                apiResponse =
-                new ApiResponse<>(
-                        true,
-                        "Payment loaded successfully.",
-                        toResponse(payment)
-                );
-
+        // -------------------------------------------------
+        // RESPONSE
+        // -------------------------------------------------
 
         return ResponseEntity.ok(
-                apiResponse
+                new ApiResponse<>(
+                        true,
+                        "Membership payment loaded successfully.",
+                        mapToResponse(payment)
+                )
         );
     }
 
@@ -314,7 +258,7 @@ public class MembershipPaymentController {
     // GET PAYMENTS BY MEMBERSHIP
     // =====================================================
 
-    @GetMapping("/membership/{membershipId}")
+    @GetMapping("/membership/{memberMembershipId}")
     public ResponseEntity<
             ApiResponse<List<MembershipPaymentResponse>>>
     getPaymentsByMembership(
@@ -326,8 +270,14 @@ public class MembershipPaymentController {
             String deviceToken,
 
             @PathVariable
-            Integer membershipId) {
+            Integer memberMembershipId) {
+        permissionAuthorizationService.requirePermission("PAYMENTS_COLLECTION_VIEW");
 
+
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -336,49 +286,34 @@ public class MembershipPaymentController {
                 );
 
 
-        MemberMembership membership =
-                memberMembershipService
-                        .findById(
-                                membershipId
-                        )
-                        .orElseThrow(() ->
-                                new BadRequestException(
-                                        "Membership not found."
-                                )
-                        );
-
-
-        validateMembership(
-                tenant,
-                membership
-        );
-
+        // -------------------------------------------------
+        // FIND PAYMENTS
+        // -------------------------------------------------
 
         List<MembershipPayment> payments =
                 membershipPaymentService
                         .findByMembership(
                                 tenant.getTenantId(),
-                                membershipId
+                                memberMembershipId
                         );
 
 
+        // -------------------------------------------------
+        // MAP RESPONSE
+        // -------------------------------------------------
+
         List<MembershipPaymentResponse> responses =
                 payments.stream()
-                        .map(this::toResponse)
+                        .map(this::mapToResponse)
                         .collect(Collectors.toList());
 
 
-        ApiResponse<List<MembershipPaymentResponse>>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Membership payments loaded successfully.",
                         responses
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                )
         );
     }
 
@@ -400,7 +335,13 @@ public class MembershipPaymentController {
 
             @PathVariable
             Integer memberId) {
+        permissionAuthorizationService.requirePermission("PAYMENTS_COLLECTION_VIEW");
 
+
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -408,6 +349,10 @@ public class MembershipPaymentController {
                         deviceToken
                 );
 
+
+        // -------------------------------------------------
+        // FIND PAYMENTS
+        // -------------------------------------------------
 
         List<MembershipPayment> payments =
                 membershipPaymentService
@@ -417,23 +362,22 @@ public class MembershipPaymentController {
                         );
 
 
+        // -------------------------------------------------
+        // MAP RESPONSE
+        // -------------------------------------------------
+
         List<MembershipPaymentResponse> responses =
                 payments.stream()
-                        .map(this::toResponse)
+                        .map(this::mapToResponse)
                         .collect(Collectors.toList());
 
 
-        ApiResponse<List<MembershipPaymentResponse>>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
-                        "Member payments loaded successfully.",
+                        "Member membership payments loaded successfully.",
                         responses
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                )
         );
     }
 
@@ -455,7 +399,13 @@ public class MembershipPaymentController {
 
             @PathVariable
             Integer branchId) {
+        permissionAuthorizationService.requirePermission("PAYMENTS_COLLECTION_VIEW");
 
+
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -464,11 +414,9 @@ public class MembershipPaymentController {
                 );
 
 
-        validateBranch(
-                tenant,
-                branchId
-        );
-
+        // -------------------------------------------------
+        // FIND PAYMENTS
+        // -------------------------------------------------
 
         List<MembershipPayment> payments =
                 membershipPaymentService
@@ -478,23 +426,22 @@ public class MembershipPaymentController {
                         );
 
 
+        // -------------------------------------------------
+        // MAP RESPONSE
+        // -------------------------------------------------
+
         List<MembershipPaymentResponse> responses =
                 payments.stream()
-                        .map(this::toResponse)
+                        .map(this::mapToResponse)
                         .collect(Collectors.toList());
 
 
-        ApiResponse<List<MembershipPaymentResponse>>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
-                        "Branch payments loaded successfully.",
+                        "Branch membership payments loaded successfully.",
                         responses
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                )
         );
     }
 
@@ -516,7 +463,13 @@ public class MembershipPaymentController {
 
             @PathVariable
             Integer paymentId) {
+        permissionAuthorizationService.requirePermission("PAYMENTS_COLLECTION_VOID");
 
+
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -525,44 +478,128 @@ public class MembershipPaymentController {
                 );
 
 
-        MembershipPayment payment =
-                membershipPaymentService
-                        .findById(
-                                paymentId
-                        )
-                        .orElseThrow(() ->
-                                new BadRequestException(
-                                        "Payment not found."
-                                )
-                        );
-
-
-        if (payment.getTenant()
-                .getTenantId()
-                != tenant.getTenantId()) {
-
-            throw new BadRequestException(
-                    "Payment does not belong to this tenant."
-            );
-        }
-
+        // -------------------------------------------------
+        // DELETE
+        // -------------------------------------------------
 
         membershipPaymentService.delete(
+                tenant.getTenantId(),
                 paymentId
         );
 
 
-        ApiResponse<Void>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Membership payment deleted successfully.",
                         null
+                )
+        );
+    }
+
+
+    // =====================================================
+    // CANCEL / REVERSE PAYMENT
+    // =====================================================
+
+    @PatchMapping("/{paymentId}/cancel")
+    public ResponseEntity<
+            ApiResponse<Void>>
+    cancelPayment(
+
+            @RequestHeader("X-Tenant-No")
+            String tenantNo,
+
+            @RequestHeader("X-Device-Token")
+            String deviceToken,
+
+            @PathVariable
+            Integer paymentId) {
+        permissionAuthorizationService.requirePermission("PAYMENTS_COLLECTION_VOID");
+
+
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
+
+        Tenant tenant =
+                validateTenantAndDevice(
+                        tenantNo,
+                        deviceToken
                 );
 
 
+        // -------------------------------------------------
+        // CANCEL PAYMENT
+        // -------------------------------------------------
+
+        membershipPaymentService.cancelPayment(
+                tenant.getTenantId(),
+                paymentId
+        );
+
+
         return ResponseEntity.ok(
-                apiResponse
+                new ApiResponse<>(
+                        true,
+                        "Membership payment cancelled successfully.",
+                        null
+                )
+        );
+    }
+
+
+    // =====================================================
+    // MEMBERSHIP PAYMENT SUMMARY
+    // =====================================================
+
+    @GetMapping("/membership/{memberMembershipId}/summary")
+    public ResponseEntity<
+            ApiResponse<MembershipPaymentSummaryResponse>>
+    getMembershipPaymentSummary(
+
+            @RequestHeader("X-Tenant-No")
+            String tenantNo,
+
+            @RequestHeader("X-Device-Token")
+            String deviceToken,
+
+            @PathVariable
+            Integer memberMembershipId) {
+        permissionAuthorizationService.requirePermission("PAYMENTS_COLLECTION_VIEW");
+
+
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
+
+        Tenant tenant =
+                validateTenantAndDevice(
+                        tenantNo,
+                        deviceToken
+                );
+
+
+        // -------------------------------------------------
+        // LOAD SUMMARY
+        // -------------------------------------------------
+
+        MembershipPaymentSummaryResponse response =
+                membershipPaymentService
+                        .getMembershipPaymentSummary(
+                                tenant.getTenantId(),
+                                memberMembershipId
+                        );
+
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Membership payment summary loaded successfully.",
+                        response
+                )
         );
     }
 
@@ -571,41 +608,53 @@ public class MembershipPaymentController {
     // ENTITY → RESPONSE
     // =====================================================
 
-    private MembershipPaymentResponse toResponse(
+    private MembershipPaymentResponse mapToResponse(
             MembershipPayment payment) {
 
         MembershipPaymentResponse response =
                 new MembershipPaymentResponse();
 
+
+        // -------------------------------------------------
+        // ID
+        // -------------------------------------------------
+
         response.setMembershipPaymentId(
                 payment.getMembershipPaymentId()
         );
 
-        response.setTenantId(
-                payment.getTenant()
-                        .getTenantId()
-        );
+
+        // -------------------------------------------------
+        // TENANT
+        // -------------------------------------------------
+
+        if (payment.getTenant() != null) {
+
+            response.setTenantId(
+                    payment.getTenant().getTenantId()
+            );
+        }
+
+
+        // -------------------------------------------------
+        // BRANCH
+        // -------------------------------------------------
 
         if (payment.getBranch() != null) {
 
             response.setBranchId(
-                    payment.getBranch()
-                            .getBranchId()
+                    payment.getBranch().getBranchId()
             );
 
             response.setBranchName(
-                    payment.getBranch()
-                            .getBranchName()
+                    payment.getBranch().getBranchName()
             );
         }
 
-        if (payment.getMember() != null) {
 
-            response.setMemberId(
-                    payment.getMember()
-                            .getMemberId()
-            );
-        }
+        // -------------------------------------------------
+        // MEMBERSHIP
+        // -------------------------------------------------
 
         if (payment.getMemberMembership() != null) {
 
@@ -618,7 +667,27 @@ public class MembershipPaymentController {
                     payment.getMemberMembership()
                             .getMembershipNumber()
             );
+
+
+            // -------------------------------------------------
+            // MEMBER
+            // -------------------------------------------------
+
+            if (payment.getMemberMembership()
+                    .getMember() != null) {
+
+                response.setMemberId(
+                        payment.getMemberMembership()
+                                .getMember()
+                                .getMemberId()
+                );
+            }
         }
+
+
+        // -------------------------------------------------
+        // RENEWAL
+        // -------------------------------------------------
 
         if (payment.getMembershipRenewal() != null) {
 
@@ -628,29 +697,114 @@ public class MembershipPaymentController {
             );
         }
 
+
+        // -------------------------------------------------
+        // BILLING CYCLE
+        // -------------------------------------------------
+
+        if (payment.getMembershipBillingCycle() != null) {
+
+            response.setMembershipBillingCycleId(
+                    payment.getMembershipBillingCycle()
+                            .getMembershipBillingCycleId()
+            );
+
+            response.setCycleNumber(
+                    payment.getMembershipBillingCycle()
+                            .getCycleNumber()
+            );
+        }
+
+
+        // -------------------------------------------------
+        // PAYMENT
+        // -------------------------------------------------
+
         response.setPaymentNumber(
                 payment.getPaymentNumber()
         );
 
         response.setAmount(
-                payment.getAmount()
+                payment.getTotalAmount()
         );
 
-        response.setPaymentMethod(
-                payment.getPaymentMethod()
-        );
 
-        response.setPaymentDate(
-                payment.getPaymentDate()
-        );
+        // -------------------------------------------------
+        // PAYMENT METHOD
+        // -------------------------------------------------
+
+        /*
+         * If there is exactly one payment detail,
+         * expose its payment method for backward compatibility.
+         *
+         * For split payments, paymentMethod remains null
+         * and paymentDetails contains the individual methods.
+         */
+
+        if (payment.getPaymentDetails() != null
+                && payment.getPaymentDetails().size() == 1) {
+
+            response.setPaymentMethod(
+                    payment.getPaymentDetails()
+                            .get(0)
+                            .getPaymentMethod()
+            );
+        }
+
+
+        // -------------------------------------------------
+        // PAYMENT DATE
+        // -------------------------------------------------
+
+        if (payment.getPaymentDate() != null) {
+
+            response.setPaymentDate(
+                    payment.getPaymentDate()
+                            .atStartOfDay()
+            );
+        }
+
+
+        // -------------------------------------------------
+        // REFERENCE
+        // -------------------------------------------------
 
         response.setReferenceNumber(
                 payment.getReferenceNumber()
         );
 
+
+        // -------------------------------------------------
+        // NOTES
+        // -------------------------------------------------
+
         response.setNotes(
                 payment.getNotes()
         );
+
+
+        // -------------------------------------------------
+        // PAYMENT DETAILS
+        // -------------------------------------------------
+
+        if (payment.getPaymentDetails() != null) {
+
+            List<MembershipPaymentDetailResponse>
+                    details =
+                    payment.getPaymentDetails()
+                            .stream()
+                            .map(this::mapDetailToResponse)
+                            .collect(Collectors.toList());
+
+            response.setPaymentDetails(
+                    details
+            );
+        }
+
+
+        // -------------------------------------------------
+        // AUDIT
+        // -------------------------------------------------
 
         response.setCreatedAt(
                 payment.getCreatedAt()
@@ -660,63 +814,60 @@ public class MembershipPaymentController {
                 payment.getUpdatedAt()
         );
 
+
         return response;
     }
 
 
     // =====================================================
-    // VALIDATE MEMBERSHIP
+    // PAYMENT DETAIL → RESPONSE
     // =====================================================
 
-    private void validateMembership(
-            Tenant tenant,
-            MemberMembership membership) {
+    private MembershipPaymentDetailResponse
+    mapDetailToResponse(
+            MembershipPaymentDetail detail) {
 
-        if (membership.getTenant()
-                .getTenantId()
-                != tenant.getTenantId()) {
-
-            throw new BadRequestException(
-                    "Membership does not belong to this tenant."
-            );
-        }
-    }
+        MembershipPaymentDetailResponse response =
+                new MembershipPaymentDetailResponse();
 
 
-    // =====================================================
-    // VALIDATE BRANCH
-    // =====================================================
+        // -------------------------------------------------
+        // ID
+        // -------------------------------------------------
 
-    private void validateBranch(
-            Tenant tenant,
-            Integer branchId) {
+        response.setMembershipPaymentDetailId(
+                detail.getMembershipPaymentDetailId()
+        );
 
-        Branch branch =
-                branchRepository.findById(
-                        branchId
-                ).orElseThrow(() ->
-                        new BadRequestException(
-                                "Branch not found."
-                        )
-                );
 
-        if (branch.getTenant()
-                .getTenantId()
-                != tenant.getTenantId()) {
+        // -------------------------------------------------
+        // METHOD
+        // -------------------------------------------------
 
-            throw new BadRequestException(
-                    "Branch does not belong to this tenant."
-            );
-        }
+        response.setPaymentMethod(
+                detail.getPaymentMethod()
+        );
 
-        if (!Boolean.TRUE.equals(
-                branch.getStatus()
-        )) {
 
-            throw new BadRequestException(
-                    "Branch is inactive."
-            );
-        }
+        // -------------------------------------------------
+        // AMOUNT
+        // -------------------------------------------------
+
+        response.setAmount(
+                detail.getAmount()
+        );
+
+
+        // -------------------------------------------------
+        // REFERENCE
+        // -------------------------------------------------
+
+        response.setReferenceNumber(
+                detail.getReferenceNumber()
+        );
+
+
+        return response;
     }
 
 
@@ -731,6 +882,10 @@ public class MembershipPaymentController {
             String deviceToken) {
 
 
+        // -------------------------------------------------
+        // FIND TENANT
+        // -------------------------------------------------
+
         Tenant tenant =
                 tenantRepository
                         .findByTenantNo(
@@ -743,6 +898,10 @@ public class MembershipPaymentController {
                         );
 
 
+        // -------------------------------------------------
+        // TENANT STATUS
+        // -------------------------------------------------
+
         if (!Boolean.TRUE.equals(
                 tenant.getStatus()
         )) {
@@ -752,6 +911,10 @@ public class MembershipPaymentController {
             );
         }
 
+
+        // -------------------------------------------------
+        // FIND DEVICE
+        // -------------------------------------------------
 
         RegisteredDevice device =
                 registeredDeviceRepository
@@ -765,6 +928,10 @@ public class MembershipPaymentController {
                         );
 
 
+        // -------------------------------------------------
+        // DEVICE STATUS
+        // -------------------------------------------------
+
         if (!Boolean.TRUE.equals(
                 device.getStatus()
         )) {
@@ -775,9 +942,13 @@ public class MembershipPaymentController {
         }
 
 
-        if (device.getTenant()
-                .getTenantId()
-                != tenant.getTenantId()) {
+        // -------------------------------------------------
+        // DEVICE → TENANT
+        // -------------------------------------------------
+
+        if (device.getTenant() == null ||
+                device.getTenant().getTenantId()
+                        != tenant.getTenantId()) {
 
             throw new BadRequestException(
                     "Device does not belong to this tenant."

@@ -4,16 +4,22 @@ import arafath65.minime.gymmanagementui.MainDashboard.AddFitnessAssessmentActivi
 import arafath65.minime.gymmanagementui.MainDashboard.AddMemberActivity;
 import arafath65.minime.gymmanagementui.MainDashboard.adapter.FitnessHistoryAdapter;
 import arafath65.minime.gymmanagementui.MainDashboard.fragment.MemberMembershipFragment;
+import arafath65.minime.gymmanagementui.MainDashboard.fragment.MemberProgramFragment;
 import arafath65.minime.gymmanagementui.model.MemberFitnessAssessmentResponse;
+import arafath65.minime.gymmanagementui.model.ManagerApprovalRequest;
+import arafath65.minime.gymmanagementui.model.ManagerApprovalResponse;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -30,6 +37,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import arafath65.minime.gymmanagementui.MainDashboard.fragment.MemberOverviewFragment;
 import arafath65.minime.gymmanagementui.Network.ApiClient;
@@ -85,7 +94,7 @@ public class MemberProfileActivity
 
     private TextView tabMembership;
 
-    private TextView tabDocuments;
+    private TextView tabProgram;
 
 
     // =====================================================
@@ -147,9 +156,9 @@ public class MemberProfileActivity
                 );
 
 
-        tabDocuments =
+        tabProgram =
                 findViewById(
-                        R.id.tabDocuments
+                        R.id.tabProgram
                 );
 
 
@@ -260,38 +269,317 @@ public class MemberProfileActivity
                 v -> finish()
         );
 
-
         btnEditMember.setOnClickListener(
-                v -> {
-
-                    Intent intent =
-                            new Intent(
-                                    MemberProfileActivity.this,
-                                    AddMemberActivity.class
-                            );
-
-
-                    intent.putExtra(
-                            "memberId",
-                            memberId
-                    );
-
-
-                    intent.putExtra(
-                            "editMode",
-                            true
-                    );
-
-
-                    startActivityForResult(
-                            intent,
-                            1001
-                    );
-                }
+                v -> showManagerApprovalDialog()
         );
+
+//        btnEditMember.setOnClickListener(
+//                v -> {
+//
+//                    Intent intent =
+//                            new Intent(
+//                                    MemberProfileActivity.this,
+//                                    AddMemberActivity.class
+//                            );
+//
+//
+//                    intent.putExtra(
+//                            "memberId",
+//                            memberId
+//                    );
+//
+//
+//                    intent.putExtra(
+//                            "editMode",
+//                            true
+//                    );
+//
+//
+//                    startActivityForResult(
+//                            intent,
+//                            1001
+//                    );
+//                }
+//        );
+    }
+
+// =====================================================
+// MANAGER APPROVAL DIALOG
+// =====================================================
+
+    private void showManagerApprovalDialog() {
+
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+
+        int horizontalPadding = dp(24);
+        int verticalPadding = dp(8);
+
+        container.setPadding(
+                horizontalPadding,
+                verticalPadding,
+                horizontalPadding,
+                0
+        );
+
+        TextInputLayout usernameLayout = new TextInputLayout(
+                this,
+                null,
+                com.google.android.material.R.attr.textInputOutlinedStyle
+        );
+
+        usernameLayout.setHint("Manager Username");
+
+        TextInputEditText usernameInput = new TextInputEditText(
+                usernameLayout.getContext()
+        );
+
+        usernameInput.setSingleLine(true);
+        usernameLayout.addView(usernameInput);
+
+        TextInputLayout passwordLayout = new TextInputLayout(
+                this,
+                null,
+                com.google.android.material.R.attr.textInputOutlinedStyle
+        );
+
+        passwordLayout.setHint("Manager Password");
+        passwordLayout.setEndIconMode(
+                TextInputLayout.END_ICON_PASSWORD_TOGGLE
+        );
+
+        TextInputEditText passwordInput = new TextInputEditText(
+                passwordLayout.getContext()
+        );
+
+        passwordInput.setSingleLine(true);
+        passwordInput.setInputType(
+                InputType.TYPE_CLASS_TEXT |
+                        InputType.TYPE_TEXT_VARIATION_PASSWORD
+        );
+
+        passwordLayout.addView(passwordInput);
+
+        LinearLayout.LayoutParams fieldParams =
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+
+        fieldParams.bottomMargin = dp(16);
+
+        container.addView(usernameLayout, fieldParams);
+        container.addView(passwordLayout);
+
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setTitle("Manager Approval Required")
+                .setMessage(
+                        "Enter an authorized manager's credentials to edit this member."
+                )
+                .setView(container)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Verify & Continue", null)
+                .create();
+
+        dialog.setOnShowListener(ignored -> {
+
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                    .setOnClickListener(v -> {
+
+                        String username =
+                                usernameInput.getText() == null
+                                        ? ""
+                                        : usernameInput.getText()
+                                        .toString().trim();
+
+                        String password =
+                                passwordInput.getText() == null
+                                        ? ""
+                                        : passwordInput.getText()
+                                        .toString();
+
+                        usernameLayout.setError(null);
+                        passwordLayout.setError(null);
+
+                        if (username.isEmpty()) {
+                            usernameLayout.setError(
+                                    "Manager username is required."
+                            );
+                            return;
+                        }
+
+                        if (password.isEmpty()) {
+                            passwordLayout.setError(
+                                    "Manager password is required."
+                            );
+                            return;
+                        }
+
+                        requestManagerApproval(
+                                username,
+                                password,
+                                dialog
+                        );
+                    });
+        });
+
+        dialog.show();
     }
 
 
+// =====================================================
+// REQUEST MANAGER APPROVAL API
+// =====================================================
+
+    private void requestManagerApproval(
+            String username,
+            String password,
+            AlertDialog dialog) {
+
+        String tenantNo = deviceStorage.getTenantNo();
+        String deviceToken = deviceStorage.getDeviceToken();
+
+        if (tenantNo == null || tenantNo.trim().isEmpty()
+                || deviceToken == null || deviceToken.trim().isEmpty()) {
+
+            Toast.makeText(
+                    this,
+                    "Tenant or device information is missing.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        android.widget.Button positiveButton =
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+
+        positiveButton.setEnabled(false);
+        positiveButton.setText("Verifying...");
+
+        ManagerApprovalRequest request =
+                new ManagerApprovalRequest(username, password);
+
+        apiService.requestManagerApproval(
+                tenantNo,
+                deviceToken,
+                memberId,
+                request
+        ).enqueue(new Callback<ApiResponse<ManagerApprovalResponse>>() {
+
+            @Override
+            public void onResponse(
+                    Call<ApiResponse<ManagerApprovalResponse>> call,
+                    Response<ApiResponse<ManagerApprovalResponse>> response) {
+
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+
+                positiveButton.setEnabled(true);
+                positiveButton.setText("Verify & Continue");
+
+                if (!response.isSuccessful() || response.body() == null) {
+
+                    String message = "Manager approval failed. HTTP "
+                            + response.code();
+
+                    if (response.errorBody() != null) {
+                        try {
+                            message = response.errorBody().string();
+                        } catch (Exception ignored) {
+                        }
+                    }
+
+                    Toast.makeText(
+                            MemberProfileActivity.this,
+                            message,
+                            Toast.LENGTH_LONG
+                    ).show();
+
+                    return;
+                }
+
+                ApiResponse<ManagerApprovalResponse> apiResponse =
+                        response.body();
+
+                if (!apiResponse.isSuccess()
+                        || apiResponse.getData() == null
+                        || apiResponse.getData().getAuthorizationToken() == null
+                        || apiResponse.getData().getAuthorizationToken().trim().isEmpty()) {
+
+                    Toast.makeText(
+                            MemberProfileActivity.this,
+                            apiResponse.getMessage() == null
+                                    ? "Manager approval was unsuccessful."
+                                    : apiResponse.getMessage(),
+                            Toast.LENGTH_LONG
+                    ).show();
+
+                    return;
+                }
+
+                String authorizationToken =
+                        apiResponse.getData().getAuthorizationToken();
+
+                dialog.dismiss();
+
+                openMemberEditor(authorizationToken);
+            }
+
+            @Override
+            public void onFailure(
+                    Call<ApiResponse<ManagerApprovalResponse>> call,
+                    Throwable t) {
+
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+
+                positiveButton.setEnabled(true);
+                positiveButton.setText("Verify & Continue");
+
+                Toast.makeText(
+                        MemberProfileActivity.this,
+                        "Connection failed: " + t.getMessage(),
+                        Toast.LENGTH_LONG
+                ).show();
+            }
+        });
+    }
+
+
+// =====================================================
+// OPEN MEMBER EDITOR
+// =====================================================
+
+    private void openMemberEditor(String authorizationToken) {
+
+        Intent intent = new Intent(
+                MemberProfileActivity.this,
+                AddMemberActivity.class
+        );
+
+        intent.putExtra("memberId", memberId);
+        intent.putExtra("editMode", true);
+        intent.putExtra(
+                "managerAuthorizationToken",
+                authorizationToken
+        );
+
+        startActivityForResult(intent, 1001);
+    }
+
+
+// =====================================================
+// DP CONVERSION
+// =====================================================
+
+    private int dp(int value) {
+        return (int) (
+                value * getResources().getDisplayMetrics().density
+        );
+    }
 
     // =====================================================
     // LOAD MEMBER
@@ -467,7 +755,7 @@ public class MemberProfileActivity
                 safeText(
                         member.getBranchNo()
                 )
-                        + " • "
+                        + " â€¢ "
                         + safeText(
                         member.getBranchName()
                 );
@@ -482,13 +770,13 @@ public class MemberProfileActivity
                 member.getStatus())) {
 
             txtMemberStatus.setText(
-                    "● ACTIVE"
+                    "â— ACTIVE"
             );
 
         } else {
 
             txtMemberStatus.setText(
-                    "● INACTIVE"
+                    "â— INACTIVE"
             );
         }
 
@@ -787,24 +1075,15 @@ public class MemberProfileActivity
 
 
         // =================================================
-        // DOCUMENTS
+        // PROGRAM
         // =================================================
 
-        tabDocuments.setOnClickListener(
-                v -> {
-
-                    selectTab(
-                            tabDocuments
-                    );
-
-
-                    Toast.makeText(
-                            this,
-                            "Documents will be added next.",
-                            Toast.LENGTH_SHORT
-                    ).show();
-                }
-        );
+        tabProgram.setOnClickListener(v -> {
+            selectTab(tabProgram);
+            if (currentMember != null) {
+                showProgramTab(currentMember);
+            }
+        });
     }
 
     // =====================================================
@@ -851,6 +1130,11 @@ public class MemberProfileActivity
         // REMOVE MEMBERSHIP
         // -------------------------------------------------
 
+        Fragment existingProgram = fragmentManager.findFragmentByTag("MEMBER_PROGRAM");
+        if (existingProgram != null) {
+            fragmentManager.beginTransaction().remove(existingProgram).commitNow();
+        }
+
         Fragment existingMembership =
                 fragmentManager.findFragmentByTag(
                         "MEMBER_MEMBERSHIP"
@@ -872,7 +1156,8 @@ public class MemberProfileActivity
         MemberMembershipFragment fragment =
                 MemberMembershipFragment.newInstance(
                         member.getMemberId(),
-                        member.getFullName()
+                        member.getFullName(),
+                        member.getBranchId()
                 );
 
 
@@ -891,6 +1176,38 @@ public class MemberProfileActivity
 
 
     // =====================================================
+    // SHOW PROGRAM TAB
+    // =====================================================
+
+    private void showProgramTab(MemberResponse member) {
+
+        if (member == null) {
+            Toast.makeText(
+                    this,
+                    "Member information not available",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        MemberProgramFragment fragment =
+                MemberProgramFragment.newInstance(
+                        member.getMemberId(),
+                        member.getFullName(),
+                        member.getBranchId()
+                );
+
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(
+                        R.id.memberProfileContainer,
+                        fragment,
+                        "MEMBER_PROGRAM"
+                )
+                .commit();
+    }
+
+    // =====================================================
     // SELECT TAB
     // =====================================================
 
@@ -903,7 +1220,7 @@ public class MemberProfileActivity
                 tabOverview,
                 tabFitness,
                 tabMembership,
-                tabDocuments
+                tabProgram
         };
 
 
@@ -1637,6 +1954,9 @@ public class MemberProfileActivity
             int requestCode,
             int resultCode,
             Intent data) {
+        if (requestCode == 1001 && resultCode == RESULT_OK) {
+            loadMember();
+        }
 
         super.onActivityResult(
                 requestCode,

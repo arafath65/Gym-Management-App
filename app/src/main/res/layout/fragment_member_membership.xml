@@ -6,600 +6,485 @@
 
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+
     android:fillViewport="true"
     android:background="@color/login_background">
+
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="14dp">
 
+        android:orientation="vertical"
+        android:padding="18dp">
 
         <!-- ================================================= -->
-        <!-- HEADER                                            -->
+        <!-- NO ACTIVE MEMBERSHIP                             -->
         <!-- ================================================= -->
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical">
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+            android:orientation="vertical"
+            android:gravity="center"
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Membership"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold"/>
-
-                <TextView
-                    android:id="@+id/txtMembershipNumber"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:text="MEM-000003"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp"/>
-
-            </LinearLayout>
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="26dp"
+            android:paddingBottom="26dp">
 
 
             <TextView
-                android:id="@+id/txtMembershipState"
-                android:layout_width="wrap_content"
+                android:id="@+id/txtNoMembership"
+
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:paddingTop="7dp"
-                android:paddingBottom="7dp"
-                android:text="ACTIVE"
-                android:textColor="@color/green_primary"
-                android:textSize="11sp"
+
+                android:gravity="center"
+
+                android:text="This member currently has no active membership."
+
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+
+                android:visibility="gone"/>
+
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCreateMembership"
+
+                android:layout_width="220dp"
+                android:layout_height="46dp"
+
+                android:layout_marginTop="12dp"
+
+                android:text="+ Create New Membership"
+
+                android:textAllCaps="false"
+                android:textSize="13sp"
                 android:textStyle="bold"
-                android:background="@drawable/bg_membership_active"/>
+
+                android:textColor="@android:color/white"
+
+                android:visibility="gone"
+
+                app:cornerRadius="12dp"
+                app:backgroundTint="@color/green_primary"/>
 
         </LinearLayout>
 
 
         <!-- ================================================= -->
-        <!-- MEMBERSHIP SUMMARY                                -->
+        <!-- CURRENT MEMBERSHIP                               -->
         <!-- ================================================= -->
 
         <androidx.cardview.widget.CardView
-            android:id="@+id/cardMembershipSummary"
+            android:id="@+id/cardCurrentMembership"
+
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+
+            android:visibility="gone"
+
             app:cardBackgroundColor="@color/login_card"
-            app:cardCornerRadius="14dp"
+            app:cardCornerRadius="16dp"
             app:cardElevation="2dp">
+
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
 
-                <!-- ================================================= -->
-                <!-- PLAN                                              -->
-                <!-- ================================================= -->
-
-                <TextView
-                    android:id="@+id/txtPlanName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Gold 12 Months"
-                    android:textColor="@color/text_primary"
-                    android:textSize="17sp"
-                    android:textStyle="bold"/>
-
-                <TextView
-                    android:id="@+id/txtPlanCode"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:text="GOLD-12"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp"/>
-
-
-                <!-- ================================================= -->
-                <!-- BRANCH                                            -->
-                <!-- ================================================= -->
-
-                <TextView
-                    android:id="@+id/txtBranchName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Colombo Branch"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp"/>
-
-
-                <!-- ================================================= -->
-                <!-- DATES                                             -->
-                <!-- ================================================= -->
+                <!-- HEADER -->
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
 
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Start Date"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp"/>
-
-                        <TextView
-                            android:id="@+id/txtStartDate"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:text="2026-08-16"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold"/>
-
-                    </LinearLayout>
+                    android:gravity="center_vertical">
 
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+
                         android:layout_weight="1"
+
                         android:orientation="vertical">
+
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Expiry Date"
+
+                            android:text="CURRENT MEMBERSHIP"
+
+                            android:textColor="@color/text_secondary"
+                            android:textSize="10sp"
+                            android:textStyle="bold"/>
+
+
+                        <TextView
+                            android:id="@+id/txtPlanName"
+
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+
+                            android:layout_marginTop="5dp"
+
+                            android:textColor="@color/text_primary"
+                            android:textSize="19sp"
+                            android:textStyle="bold"/>
+
+
+                        <TextView
+                            android:id="@+id/txtPlanCode"
+
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+
+                            android:layout_marginTop="3dp"
+
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp"/>
 
+
                         <TextView
-                            android:id="@+id/txtEndDate"
+                            android:id="@+id/txtMembershipNumber"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
-                            android:text="2027-08-16"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold"/>
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
 
                     </LinearLayout>
+
+
+                    <TextView
+                        android:id="@+id/txtMembershipState"
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp"
+
+                        android:textColor="@color/green_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+
+                        android:background="@drawable/bg_status_active"/>
 
                 </LinearLayout>
 
 
-                <!-- ================================================= -->
-                <!-- DIVIDER                                           -->
-                <!-- ================================================= -->
+                <!-- DIVIDER -->
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginTop="16dp"
-                    android:background="@color/login_stroke"/>
+
+                    android:layout_marginTop="15dp"
+
+                    android:background="@color/border_color"/>
 
 
-                <!-- ================================================= -->
-                <!-- PAYMENT SUMMARY                                   -->
-                <!-- ================================================= -->
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:text="Payment Summary"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"/>
-
-
-                <!-- PLAN PRICE -->
-
+                <!-- MEMBERSHIP DETAILS: all key values on one row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="15dp"
                     android:orientation="horizontal">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Plan Price"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"/>
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="START DATE"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/txtStartDate"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+                    </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/txtPlanPrice"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Rs. 60,000.00"
-                        android:textColor="@color/text_primary"
-                        android:textSize="12sp"/>
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="END DATE"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/txtEndDate"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/txtTotalLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="TOTAL"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/txtTotalAmount"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/layoutBalanceColumn"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="BALANCE"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/txtBalanceAmount"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+                    </LinearLayout>
 
                 </LinearLayout>
 
-
-                <!-- JOINING FEE -->
-
+                <!-- MEMBERSHIP ACTIONS -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:orientation="horizontal">
+                    android:layout_marginTop="20dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
-                    <TextView
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddToMembership"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="44dp"
                         android:layout_weight="1"
-                        android:text="Joining Fee"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"/>
+                        android:layout_marginEnd="5dp"
+                        android:minWidth="0dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:text="Change Membership Plan"
+                        android:textAllCaps="false"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        app:cornerRadius="10dp"
+                        app:backgroundTint="#287D78" />
 
-                    <TextView
-                        android:id="@+id/txtJoiningFee"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Rs. 2,000.00"
-                        android:textColor="@color/text_primary"
-                        android:textSize="12sp"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRenewMembership"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginEnd="5dp"
+                        android:minWidth="0dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:text="Renew"
+                        android:textAllCaps="false"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        app:cornerRadius="10dp"
+                        app:backgroundTint="@color/green_primary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCancelMembership"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="5dp"
+                        android:minWidth="0dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:text="Cancel Membership"
+                        android:textAllCaps="false"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        app:cornerRadius="10dp"
+                        app:backgroundTint="#C62828" />
 
                 </LinearLayout>
-
-
-                <!-- DISCOUNT -->
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Discount"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"/>
-
-                    <TextView
-                        android:id="@+id/txtDiscountAmount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Rs. 0.00"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"/>
-
-                </LinearLayout>
-
-
-                <!-- TOTAL -->
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Total"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/txtTotalAmount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Rs. 62,000.00"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold"/>
-
-                </LinearLayout>
-
-
-                <!-- PAID -->
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Paid"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"/>
-
-                    <TextView
-                        android:id="@+id/txtPaidAmount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Rs. 0.00"
-                        android:textColor="@color/green_light"
-                        android:textSize="12sp"
-                        android:textStyle="bold"/>
-
-                </LinearLayout>
-
-
-                <!-- BALANCE -->
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Balance"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/txtBalanceAmount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Rs. 62,000.00"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp"
-                        android:textStyle="bold"/>
-
-                </LinearLayout>
-
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>
 
 
         <!-- ================================================= -->
-        <!-- ACTION BUTTONS                                    -->
+        <!-- CURRENT MEMBERSHIP BENEFITS                      -->
         <!-- ================================================= -->
 
         <LinearLayout
+            android:id="@+id/layoutBenefitsSection"
+
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnPayment"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="5dp"
-                android:text="Payment"
-                android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                app:backgroundTint="@color/green_primary"
-                app:cornerRadius="10dp"/>
+            android:layout_marginTop="22dp"
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnFreeze"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:layout_marginStart="5dp"
-                android:text="Freeze"
-                android:textAllCaps="false"
-                android:textColor="@color/green_primary"
-                android:textStyle="bold"
-                android:background="@drawable/bg_button_secondary"
-                app:backgroundTint="@null"
-                app:cornerRadius="10dp"/>
+            android:orientation="vertical">
 
-        </LinearLayout>
-
-
-        <!-- ================================================= -->
-        <!-- RENEWAL                                          -->
-        <!-- ================================================= -->
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnRenew"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="10dp"
-            android:text="Renew Membership"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            app:backgroundTint="@color/green_primary"
-            app:cornerRadius="10dp"/>
-
-
-        <!-- ================================================= -->
-        <!-- MEMBERSHIP INFORMATION                            -->
-        <!-- ================================================= -->
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:orientation="horizontal">
-
-            <!-- FREEZE -->
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="6dp"
-                android:padding="14dp"
-                android:orientation="vertical"
-                android:background="@drawable/bg_dashboard_card">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Freeze"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"/>
-
-                <TextView
-                    android:id="@+id/txtFreezeDays"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="0 days used"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp"/>
-
-            </LinearLayout>
-
-
-            <!-- RENEWALS -->
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="6dp"
-                android:padding="14dp"
-                android:orientation="vertical"
-                android:background="@drawable/bg_dashboard_card">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Renewals"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"/>
-
-                <TextView
-                    android:id="@+id/txtRenewalCount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="0 renewals"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp"/>
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-
-        <!-- ================================================= -->
-        <!-- NOTES                                             -->
-        <!-- ================================================= -->
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:padding="14dp"
-            android:orientation="vertical"
-            android:background="@drawable/bg_dashboard_card">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Notes"
+
+                android:text="Benefits"
+
                 android:textColor="@color/text_primary"
-                android:textSize="14sp"
+                android:textSize="18sp"
                 android:textStyle="bold"/>
 
+
             <TextView
-                android:id="@+id/txtMembershipNotes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="3dp"
+
+                android:text="Benefits assigned to this membership"
+
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"/>
+
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerMembershipBenefits"
+
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="-"
+
+                android:layout_marginTop="10dp"
+
+                android:nestedScrollingEnabled="false"
+
+                android:clipToPadding="false"
+
+                android:paddingBottom="20dp"/>
+
+
+            <TextView
+                android:id="@+id/txtNoBenefits"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:padding="18dp"
+
+                android:gravity="center"
+
+                android:text="No benefits assigned."
+
                 android:textColor="@color/text_secondary"
-                android:textSize="12sp"/>
+                android:textSize="12sp"
+
+                android:visibility="gone"/>
 
         </LinearLayout>
 
-
         <!-- ================================================= -->
-        <!-- NO MEMBERSHIP                                    -->
+        <!-- MEMBERSHIP HISTORY                               -->
         <!-- ================================================= -->
 
         <LinearLayout
-            android:id="@+id/layoutNoMembership"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:padding="25dp"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:background="@drawable/bg_dashboard_card"
-            android:visibility="gone">
 
-            <ImageView
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:src="@drawable/ic_membership"
-                app:tint="@color/text_secondary"
-                android:contentDescription="@null"/>
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="20dp"
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="No active membership"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold"/>
+            android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Create a new membership for this member."
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+
+                android:background="@color/border_color"/>
+
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCreateMembership"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginTop="15dp"
-                android:text="Create Membership"
+                android:id="@+id/btnMembershipHistory"
+
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+
+                android:layout_marginTop="16dp"
+
+                android:text="Membership History"
+
                 android:textAllCaps="false"
-                android:textColor="@android:color/white"
+                android:textSize="13sp"
                 android:textStyle="bold"
-                app:backgroundTint="@color/green_primary"
-                app:cornerRadius="10dp"/>
+
+                android:textColor="@color/text_primary"
+
+                app:cornerRadius="12dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/border_color"
+                app:backgroundTint="@color/login_card"/>
 
         </LinearLayout>
+
 
     </LinearLayout>
 

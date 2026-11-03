@@ -4,29 +4,28 @@ import com.arafath65.gymManagement.entity.MembershipRenewal;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MembershipRenewalRepository
         extends JpaRepository<MembershipRenewal, Integer> {
+
+
+    // =====================================================
+    // FIND ALL TENANT RENEWALS
+    // =====================================================
 
     List<MembershipRenewal>
     findByTenant_TenantIdOrderByRenewalDateDesc(
             Integer tenantId
     );
 
-    List<MembershipRenewal>
-    findByTenant_TenantIdAndBranch_BranchIdOrderByRenewalDateDesc(
-            Integer tenantId,
-            Integer branchId
-    );
 
-    List<MembershipRenewal>
-    findByTenant_TenantIdAndMember_MemberIdOrderByRenewalDateDesc(
-            Integer tenantId,
-            Integer memberId
-    );
+    // =====================================================
+    // FIND BY MEMBERSHIP
+    // =====================================================
 
     List<MembershipRenewal>
     findByTenant_TenantIdAndMemberMembership_MemberMembershipIdOrderByRenewalDateDesc(
@@ -34,31 +33,81 @@ public interface MembershipRenewalRepository
             Integer memberMembershipId
     );
 
+
+    // =====================================================
+    // FIND BY MEMBER
+    // =====================================================
+
     List<MembershipRenewal>
-    findByTenant_TenantIdAndBranch_BranchIdAndMemberMembership_MemberMembershipIdOrderByRenewalDateDesc(
+    findByTenant_TenantIdAndMemberMembership_Member_MemberIdOrderByRenewalDateDesc(
             Integer tenantId,
-            Integer branchId,
-            Integer memberMembershipId
+            Integer memberId
     );
+
+
+    // =====================================================
+    // FIND BY BRANCH
+    // =====================================================
+
+    List<MembershipRenewal>
+    findByTenant_TenantIdAndBranch_BranchIdOrderByRenewalDateDesc(
+            Integer tenantId,
+            Integer branchId
+    );
+
+
+    // =====================================================
+    // FIND BY RENEWAL NUMBER
+    // =====================================================
+
+    Optional<MembershipRenewal>
+    findByTenant_TenantIdAndRenewalNumber(
+            Integer tenantId,
+            String renewalNumber
+    );
+
+
+    // =====================================================
+    // EXISTENCE CHECK
+    // =====================================================
+
+    boolean
+    existsByTenant_TenantIdAndRenewalNumber(
+            Integer tenantId,
+            String renewalNumber
+    );
+
+
+    // =====================================================
+    // ACTIVE RENEWALS
+    // =====================================================
+
+    List<MembershipRenewal>
+    findByTenant_TenantIdAndStatusOrderByRenewalDateDesc(
+            Integer tenantId,
+            Boolean status
+    );
+
+
+    // =====================================================
+    // MEMBERSHIP + STATUS
+    // =====================================================
+
+    List<MembershipRenewal>
+    findByTenant_TenantIdAndMemberMembership_MemberMembershipIdAndStatusOrderByRenewalDateDesc(
+            Integer tenantId,
+            Integer memberMembershipId,
+            Boolean status
+    );
+
+    // =====================================================
+// FIND BY RENEWAL DATE RANGE
+// =====================================================
 
     List<MembershipRenewal>
     findByTenant_TenantIdAndRenewalDateBetweenOrderByRenewalDateDesc(
             Integer tenantId,
-            LocalDateTime startDate,
-            LocalDateTime endDate
-    );
-
-    List<MembershipRenewal>
-    findByTenant_TenantIdAndBranch_BranchIdAndRenewalDateBetweenOrderByRenewalDateDesc(
-            Integer tenantId,
-            Integer branchId,
-            LocalDateTime startDate,
-            LocalDateTime endDate
-    );
-
-    List<MembershipRenewal>
-    findByTenant_TenantIdAndMemberMembership_MemberMembershipIdOrderByRenewalNumberAsc(
-            Integer tenantId,
-            Integer memberMembershipId
+            LocalDate startDate,
+            LocalDate endDate
     );
 }

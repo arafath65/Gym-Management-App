@@ -1,9 +1,11 @@
 package com.arafath65.gymManagement.controller;
 
 import com.arafath65.gymManagement.dto.request.ProgramRequest;
+import com.arafath65.gymManagement.dto.response.ProgramBranchResponse;
 import com.arafath65.gymManagement.dto.response.ProgramResponse;
 import com.arafath65.gymManagement.entity.Branch;
 import com.arafath65.gymManagement.entity.Program;
+import com.arafath65.gymManagement.entity.ProgramBranch;
 import com.arafath65.gymManagement.entity.RegisteredDevice;
 import com.arafath65.gymManagement.entity.Tenant;
 import com.arafath65.gymManagement.exception.BadRequestException;
@@ -19,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -83,351 +86,121 @@ public class ProgramController {
             @RequestBody
             ProgramRequest request) {
 
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
                         tenantNo,
                         deviceToken
                 );
-
-
-        // -------------------------------------------------
-        // BRANCH
-        // -------------------------------------------------
-
-        Branch branch = null;
-
-
-        if (request.getBranchId() != null) {
-
-            branch =
-                    branchRepository.findById(
-                            request.getBranchId()
-                    ).orElseThrow(() ->
-                            new BadRequestException(
-                                    "Branch not found."
-                            )
-                    );
-
-
-            validateBranch(
-                    tenant,
-                    branch
-            );
-        }
-
-
-        // -------------------------------------------------
-        // BUILD PROGRAM
-        // -------------------------------------------------
-
-        Program program =
-                new Program();
-
-
-        program.setTenant(
-                tenant
-        );
-
-
-        program.setBranch(
-                branch
-        );
-
-
-        program.setProgramCode(
-                request.getProgramCode()
-        );
-
-
-        program.setProgramName(
-                request.getProgramName()
-        );
-
-
-        program.setDescription(
-                request.getDescription()
-        );
-
-
-        program.setDurationDays(
-                request.getDurationDays()
-        );
-
-
-        program.setFee(
-                request.getFee()
-        );
-
-
-        program.setStatus(
-                true
-        );
 
 
         // -------------------------------------------------
         // CREATE
         // -------------------------------------------------
 
-        Program saved =
-                programService.create(
-                        program
-                );
+        Program savedProgram;
+
+        try {
+
+            Program program =
+                    new Program();
+
+            program.setTenant(
+                    tenant
+            );
+
+            program.setProgramCode(
+                    request.getProgramCode()
+            );
+
+            program.setProgramName(
+                    request.getProgramName()
+            );
+
+            program.setDescription(
+                    request.getDescription()
+            );
+
+            program.setDurationDays(
+                    request.getDurationDays()
+            );
+
+            program.setStatus(
+                    true
+            );
+
+
+            // -------------------------------------------------
+            // BRANCH DATA
+            // -------------------------------------------------
+
+            List<Integer> branchIds =
+                    new ArrayList<>();
+
+            List<java.math.BigDecimal> branchFees =
+                    new ArrayList<>();
+
+
+            if ("SELECTED_BRANCHES".equalsIgnoreCase(
+                    request.getBranchMode()
+            )) {
+
+                if (request.getBranches() != null) {
+
+                    request.getBranches()
+                            .forEach(
+                                    branch -> {
+
+                                        branchIds.add(
+                                                branch.getBranchId()
+                                        );
+
+                                        branchFees.add(
+                                                branch.getFee()
+                                        );
+                                    }
+                            );
+                }
+
+            }
+
+
+            // -------------------------------------------------
+            // SERVICE
+            // -------------------------------------------------
+
+            savedProgram =
+                    programService.create(
+                            program,
+                            request.getBranchMode(),
+                            request.getDefaultFee(),
+                            branchIds,
+                            branchFees
+                    );
+
+
+        } catch (IllegalArgumentException e) {
+
+            throw new BadRequestException(
+                    e.getMessage()
+            );
+        }
 
 
         // -------------------------------------------------
         // RESPONSE
         // -------------------------------------------------
 
-        ApiResponse<ProgramResponse>
-                apiResponse =
+        return new ResponseEntity<>(
                 new ApiResponse<>(
                         true,
                         "Program created successfully.",
-                        toResponse(saved)
-                );
-
-
-        return new ResponseEntity<>(
-                apiResponse,
+                        toResponse(savedProgram)
+                ),
                 HttpStatus.CREATED
-        );
-    }
-
-
-    // =====================================================
-    // GET ALL PROGRAMS
-    // =====================================================
-
-    @GetMapping
-    public ResponseEntity<
-            ApiResponse<List<ProgramResponse>>>
-    getPrograms(
-
-            @RequestHeader("X-Tenant-No")
-            String tenantNo,
-
-            @RequestHeader("X-Device-Token")
-            String deviceToken,
-
-            @RequestParam(required = false)
-            Integer branchId,
-
-            @RequestParam(required = false)
-            Boolean active) {
-
-
-        Tenant tenant =
-                validateTenantAndDevice(
-                        tenantNo,
-                        deviceToken
-                );
-
-
-        List<Program> programs;
-
-
-        // -------------------------------------------------
-        // BRANCH + ACTIVE
-        // -------------------------------------------------
-
-        if (branchId != null
-                && Boolean.TRUE.equals(active)) {
-
-            validateBranch(
-                    tenant,
-                    branchId
-            );
-
-
-            programs =
-                    programService
-                            .findActiveByBranch(
-                                    tenant.getTenantId(),
-                                    branchId
-                            );
-        }
-
-
-        // -------------------------------------------------
-        // BRANCH ONLY
-        // -------------------------------------------------
-
-        else if (branchId != null) {
-
-            validateBranch(
-                    tenant,
-                    branchId
-            );
-
-
-            programs =
-                    programService
-                            .findByBranch(
-                                    tenant.getTenantId(),
-                                    branchId
-                            );
-        }
-
-
-        // -------------------------------------------------
-        // ACTIVE ONLY
-        // -------------------------------------------------
-
-        else if (Boolean.TRUE.equals(active)) {
-
-            programs =
-                    programService
-                            .findActive(
-                                    tenant.getTenantId()
-                            );
-        }
-
-
-        // -------------------------------------------------
-        // ALL
-        // -------------------------------------------------
-
-        else {
-
-            programs =
-                    programService
-                            .findByTenant(
-                                    tenant.getTenantId()
-                            );
-        }
-
-
-        List<ProgramResponse> responses =
-                programs.stream()
-                        .map(this::toResponse)
-                        .collect(Collectors.toList());
-
-
-        ApiResponse<List<ProgramResponse>>
-                apiResponse =
-                new ApiResponse<>(
-                        true,
-                        "Programs loaded successfully.",
-                        responses
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
-        );
-    }
-
-
-    // =====================================================
-    // GET PROGRAM BY ID
-    // =====================================================
-
-    @GetMapping("/{programId}")
-    public ResponseEntity<
-            ApiResponse<ProgramResponse>>
-    getProgramById(
-
-            @RequestHeader("X-Tenant-No")
-            String tenantNo,
-
-            @RequestHeader("X-Device-Token")
-            String deviceToken,
-
-            @PathVariable
-            Integer programId) {
-
-
-        Tenant tenant =
-                validateTenantAndDevice(
-                        tenantNo,
-                        deviceToken
-                );
-
-
-        Program program =
-                programService
-                        .findById(
-                                programId
-                        )
-                        .orElseThrow(() ->
-                                new BadRequestException(
-                                        "Program not found."
-                                )
-                        );
-
-
-        validateProgramTenant(
-                tenant,
-                program
-        );
-
-
-        ApiResponse<ProgramResponse>
-                apiResponse =
-                new ApiResponse<>(
-                        true,
-                        "Program loaded successfully.",
-                        toResponse(program)
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
-        );
-    }
-
-
-    // =====================================================
-    // GET PROGRAM BY CODE
-    // =====================================================
-
-    @GetMapping("/code/{programCode}")
-    public ResponseEntity<
-            ApiResponse<ProgramResponse>>
-    getProgramByCode(
-
-            @RequestHeader("X-Tenant-No")
-            String tenantNo,
-
-            @RequestHeader("X-Device-Token")
-            String deviceToken,
-
-            @PathVariable
-            String programCode) {
-
-
-        Tenant tenant =
-                validateTenantAndDevice(
-                        tenantNo,
-                        deviceToken
-                );
-
-
-        Program program =
-                programService
-                        .findByCode(
-                                tenant.getTenantId(),
-                                programCode
-                        )
-                        .orElseThrow(() ->
-                                new BadRequestException(
-                                        "Program not found."
-                                )
-                        );
-
-
-        ApiResponse<ProgramResponse>
-                apiResponse =
-                new ApiResponse<>(
-                        true,
-                        "Program loaded successfully.",
-                        toResponse(program)
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
         );
     }
 
@@ -454,6 +227,9 @@ public class ProgramController {
             @RequestBody
             ProgramRequest request) {
 
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -462,7 +238,11 @@ public class ProgramController {
                 );
 
 
-        Program existing =
+        // -------------------------------------------------
+        // FIND EXISTING PROGRAM
+        // -------------------------------------------------
+
+        Program existingProgram =
                 programService
                         .findById(
                                 programId
@@ -474,103 +254,415 @@ public class ProgramController {
                         );
 
 
+        // -------------------------------------------------
+        // TENANT SECURITY
+        // -------------------------------------------------
+
         validateProgramTenant(
-                tenant,
-                existing
-        );
-
-
-        // -------------------------------------------------
-        // BRANCH
-        // -------------------------------------------------
-
-        Branch branch = null;
-
-
-        if (request.getBranchId() != null) {
-
-            branch =
-                    branchRepository.findById(
-                            request.getBranchId()
-                    ).orElseThrow(() ->
-                            new BadRequestException(
-                                    "Branch not found."
-                            )
-                    );
-
-
-            validateBranch(
-                    tenant,
-                    branch
-            );
-        }
-
-
-        // -------------------------------------------------
-        // BUILD UPDATE OBJECT
-        // -------------------------------------------------
-
-        Program updated =
-                new Program();
-
-
-        updated.setTenant(
+                existingProgram,
                 tenant
         );
 
 
-        updated.setBranch(
-                branch
+        // -------------------------------------------------
+        // BUILD UPDATED PROGRAM
+        // -------------------------------------------------
+
+        Program updatedProgram =
+                new Program();
+
+        updatedProgram.setTenant(
+                tenant
         );
 
-
-        updated.setProgramCode(
+        updatedProgram.setProgramCode(
                 request.getProgramCode()
         );
 
-
-        updated.setProgramName(
+        updatedProgram.setProgramName(
                 request.getProgramName()
         );
 
-
-        updated.setDescription(
+        updatedProgram.setDescription(
                 request.getDescription()
         );
 
-
-        updated.setDurationDays(
+        updatedProgram.setDurationDays(
                 request.getDurationDays()
         );
 
-
-        updated.setFee(
-                request.getFee()
+        updatedProgram.setStatus(
+                existingProgram.getStatus()
         );
+
+
+        // -------------------------------------------------
+        // BRANCH DATA
+        // -------------------------------------------------
+
+        List<Integer> branchIds =
+                new ArrayList<>();
+
+        List<java.math.BigDecimal> branchFees =
+                new ArrayList<>();
+
+
+        if ("SELECTED_BRANCHES".equalsIgnoreCase(
+                request.getBranchMode()
+        )) {
+
+            if (request.getBranches() != null) {
+
+                request.getBranches()
+                        .forEach(
+                                branch -> {
+
+                                    branchIds.add(
+                                            branch.getBranchId()
+                                    );
+
+                                    branchFees.add(
+                                            branch.getFee()
+                                    );
+                                }
+                        );
+            }
+        }
 
 
         // -------------------------------------------------
         // UPDATE
         // -------------------------------------------------
 
-        Program saved =
-                programService.update(
-                        programId,
-                        updated
-                );
+        Program savedProgram;
+
+        try {
+
+            savedProgram =
+                    programService.update(
+                            programId,
+                            updatedProgram,
+                            request.getBranchMode(),
+                            request.getDefaultFee(),
+                            branchIds,
+                            branchFees
+                    );
+
+        } catch (IllegalArgumentException e) {
+
+            throw new BadRequestException(
+                    e.getMessage()
+            );
+        }
 
 
-        ApiResponse<ProgramResponse>
-                apiResponse =
+        // -------------------------------------------------
+        // RESPONSE
+        // -------------------------------------------------
+
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Program updated successfully.",
-                        toResponse(saved)
+                        toResponse(savedProgram)
+                )
+        );
+    }
+
+
+    // =====================================================
+    // GET ALL PROGRAMS
+    // =====================================================
+
+    @GetMapping
+    public ResponseEntity<
+            ApiResponse<List<ProgramResponse>>>
+    getPrograms(
+
+            @RequestHeader("X-Tenant-No")
+            String tenantNo,
+
+            @RequestHeader("X-Device-Token")
+            String deviceToken,
+
+            @RequestParam(
+                    required = false
+            )
+            Integer branchId) {
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
+
+        Tenant tenant =
+                validateTenantAndDevice(
+                        tenantNo,
+                        deviceToken
                 );
 
 
+        // -------------------------------------------------
+        // GET PROGRAMS
+        // -------------------------------------------------
+
+        List<Program> programs;
+
+        if (branchId == null) {
+
+            programs =
+                    programService.findByTenant(
+                            tenant.getTenantId()
+                    );
+
+        } else {
+
+            validateBranch(
+                    tenant,
+                    branchId
+            );
+
+            programs =
+                    programService.findByBranch(
+                            tenant.getTenantId(),
+                            branchId
+                    );
+        }
+
+
+        // -------------------------------------------------
+        // RESPONSE
+        // -------------------------------------------------
+
+        List<ProgramResponse>
+                responses =
+                programs.stream()
+                        .map(
+                                this::toResponse
+                        )
+                        .collect(
+                                Collectors.toList()
+                        );
+
+
         return ResponseEntity.ok(
-                apiResponse
+                new ApiResponse<>(
+                        true,
+                        "Programs loaded successfully.",
+                        responses
+                )
+        );
+    }
+
+
+    // =====================================================
+    // GET ACTIVE PROGRAMS
+    // =====================================================
+
+    @GetMapping("/active")
+    public ResponseEntity<
+            ApiResponse<List<ProgramResponse>>>
+    getActivePrograms(
+
+            @RequestHeader("X-Tenant-No")
+            String tenantNo,
+
+            @RequestHeader("X-Device-Token")
+            String deviceToken,
+
+            @RequestParam(
+                    required = false
+            )
+            Integer branchId) {
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
+
+        Tenant tenant =
+                validateTenantAndDevice(
+                        tenantNo,
+                        deviceToken
+                );
+
+
+        // -------------------------------------------------
+        // GET ACTIVE PROGRAMS
+        // -------------------------------------------------
+
+        List<Program> programs;
+
+        if (branchId == null) {
+
+            programs =
+                    programService.findActive(
+                            tenant.getTenantId()
+                    );
+
+        } else {
+
+            validateBranch(
+                    tenant,
+                    branchId
+            );
+
+            programs =
+                    programService.findActiveByBranch(
+                            tenant.getTenantId(),
+                            branchId
+                    );
+        }
+
+
+        // -------------------------------------------------
+        // RESPONSE
+        // -------------------------------------------------
+
+        List<ProgramResponse>
+                responses =
+                programs.stream()
+                        .map(
+                                this::toResponse
+                        )
+                        .collect(
+                                Collectors.toList()
+                        );
+
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Active programs loaded successfully.",
+                        responses
+                )
+        );
+    }
+
+
+    // =====================================================
+    // GET PROGRAM BY ID
+    // =====================================================
+
+    @GetMapping("/{programId}")
+    public ResponseEntity<
+            ApiResponse<ProgramResponse>>
+    getProgramById(
+
+            @RequestHeader("X-Tenant-No")
+            String tenantNo,
+
+            @RequestHeader("X-Device-Token")
+            String deviceToken,
+
+            @PathVariable
+            Integer programId) {
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
+
+        Tenant tenant =
+                validateTenantAndDevice(
+                        tenantNo,
+                        deviceToken
+                );
+
+
+        // -------------------------------------------------
+        // FIND PROGRAM
+        // -------------------------------------------------
+
+        Program program =
+                programService
+                        .findById(
+                                programId
+                        )
+                        .orElseThrow(() ->
+                                new BadRequestException(
+                                        "Program not found."
+                                )
+                        );
+
+
+        // -------------------------------------------------
+        // TENANT SECURITY
+        // -------------------------------------------------
+
+        validateProgramTenant(
+                program,
+                tenant
+        );
+
+
+        // -------------------------------------------------
+        // RESPONSE
+        // -------------------------------------------------
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Program loaded successfully.",
+                        toResponse(program)
+                )
+        );
+    }
+
+
+    // =====================================================
+    // GET PROGRAM BY CODE
+    // =====================================================
+
+    @GetMapping("/code/{programCode}")
+    public ResponseEntity<
+            ApiResponse<ProgramResponse>>
+    getProgramByCode(
+
+            @RequestHeader("X-Tenant-No")
+            String tenantNo,
+
+            @RequestHeader("X-Device-Token")
+            String deviceToken,
+
+            @PathVariable
+            String programCode) {
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
+
+        Tenant tenant =
+                validateTenantAndDevice(
+                        tenantNo,
+                        deviceToken
+                );
+
+
+        // -------------------------------------------------
+        // FIND
+        // -------------------------------------------------
+
+        Program program =
+                programService
+                        .findByCode(
+                                tenant.getTenantId(),
+                                programCode
+                        )
+                        .orElseThrow(() ->
+                                new BadRequestException(
+                                        "Program not found."
+                                )
+                        );
+
+
+        // -------------------------------------------------
+        // RESPONSE
+        // -------------------------------------------------
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Program loaded successfully.",
+                        toResponse(program)
+                )
         );
     }
 
@@ -593,6 +685,9 @@ public class ProgramController {
             @PathVariable
             Integer programId) {
 
+        // -------------------------------------------------
+        // VALIDATE
+        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -601,7 +696,7 @@ public class ProgramController {
                 );
 
 
-        Program program =
+        Program existingProgram =
                 programService
                         .findById(
                                 programId
@@ -614,22 +709,37 @@ public class ProgramController {
 
 
         validateProgramTenant(
-                tenant,
-                program
+                existingProgram,
+                tenant
         );
 
 
-        Program updated =
-                programService.activate(
-                        programId
-                );
+        // -------------------------------------------------
+        // ACTIVATE
+        // -------------------------------------------------
+
+        Program updatedProgram;
+
+        try {
+
+            updatedProgram =
+                    programService.activate(
+                            programId
+                    );
+
+        } catch (IllegalArgumentException e) {
+
+            throw new BadRequestException(
+                    e.getMessage()
+            );
+        }
 
 
         return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Program activated successfully.",
-                        toResponse(updated)
+                        toResponse(updatedProgram)
                 )
         );
     }
@@ -653,6 +763,9 @@ public class ProgramController {
             @PathVariable
             Integer programId) {
 
+        // -------------------------------------------------
+        // VALIDATE
+        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -661,7 +774,7 @@ public class ProgramController {
                 );
 
 
-        Program program =
+        Program existingProgram =
                 programService
                         .findById(
                                 programId
@@ -674,22 +787,34 @@ public class ProgramController {
 
 
         validateProgramTenant(
-                tenant,
-                program
+                existingProgram,
+                tenant
         );
 
 
-        Program updated =
-                programService.deactivate(
-                        programId
-                );
+        // -------------------------------------------------
+        // DEACTIVATE
+        // -------------------------------------------------
+
+        try {
+
+            programService.deactivate(
+                    programId
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            throw new BadRequestException(
+                    e.getMessage()
+            );
+        }
 
 
         return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Program deactivated successfully.",
-                        toResponse(updated)
+                        null
                 )
         );
     }
@@ -713,6 +838,9 @@ public class ProgramController {
             @PathVariable
             Integer programId) {
 
+        // -------------------------------------------------
+        // VALIDATE
+        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -721,7 +849,7 @@ public class ProgramController {
                 );
 
 
-        Program program =
+        Program existingProgram =
                 programService
                         .findById(
                                 programId
@@ -734,14 +862,27 @@ public class ProgramController {
 
 
         validateProgramTenant(
-                tenant,
-                program
+                existingProgram,
+                tenant
         );
 
 
-        programService.delete(
-                programId
-        );
+        // -------------------------------------------------
+        // DELETE
+        // -------------------------------------------------
+
+        try {
+
+            programService.delete(
+                    programId
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            throw new BadRequestException(
+                    e.getMessage()
+            );
+        }
 
 
         return ResponseEntity.ok(
@@ -755,7 +896,7 @@ public class ProgramController {
 
 
     // =====================================================
-    // ENTITY → RESPONSE
+    // PROGRAM → RESPONSE
     // =====================================================
 
     private ProgramResponse toResponse(
@@ -765,28 +906,20 @@ public class ProgramController {
                 new ProgramResponse();
 
 
+        // -------------------------------------------------
+        // BASIC
+        // -------------------------------------------------
+
         response.setProgramId(
                 program.getProgramId()
         );
 
 
-        response.setTenantId(
-                program.getTenant()
-                        .getTenantId()
-        );
+        if (program.getTenant() != null) {
 
-
-        if (program.getBranch() != null) {
-
-            response.setBranchId(
-                    program.getBranch()
-                            .getBranchId()
-            );
-
-
-            response.setBranchName(
-                    program.getBranch()
-                            .getBranchName()
+            response.setTenantId(
+                    program.getTenant()
+                            .getTenantId()
             );
         }
 
@@ -811,15 +944,102 @@ public class ProgramController {
         );
 
 
-        response.setFee(
-                program.getFee()
-        );
-
-
         response.setStatus(
                 program.getStatus()
         );
 
+
+        // -------------------------------------------------
+        // BRANCH ASSIGNMENTS
+        // -------------------------------------------------
+
+        List<ProgramBranchResponse>
+                branchResponses =
+                new ArrayList<>();
+
+
+        if (program.getBranchAssignments()
+                != null) {
+
+            for (
+                    ProgramBranch assignment
+                    : program.getBranchAssignments()
+            ) {
+
+                if (assignment == null) {
+                    continue;
+                }
+
+
+                ProgramBranchResponse
+                        branchResponse =
+                        new ProgramBranchResponse();
+
+
+                branchResponse.setProgramBranchId(
+                        assignment
+                                .getProgramBranchId()
+                );
+
+
+                if (assignment.getBranch()
+                        != null) {
+
+                    Branch branch =
+                            assignment.getBranch();
+
+
+                    branchResponse.setBranchId(
+                            branch.getBranchId()
+                    );
+
+
+                    branchResponse.setBranchNo(
+                            branch.getBranchNo()
+                    );
+
+
+                    branchResponse.setBranchName(
+                            branch.getBranchName()
+                    );
+                }
+
+
+                branchResponse.setFee(
+                        assignment.getFee()
+                );
+
+
+                branchResponse.setStatus(
+                        assignment.getStatus()
+                );
+
+
+                branchResponse.setCreatedAt(
+                        assignment.getCreatedAt()
+                );
+
+
+                branchResponse.setUpdatedAt(
+                        assignment.getUpdatedAt()
+                );
+
+
+                branchResponses.add(
+                        branchResponse
+                );
+            }
+        }
+
+
+        response.setBranchAssignments(
+                branchResponses
+        );
+
+
+        // -------------------------------------------------
+        // AUDIT
+        // -------------------------------------------------
 
         response.setCreatedAt(
                 program.getCreatedAt()
@@ -840,11 +1060,18 @@ public class ProgramController {
     // =====================================================
 
     private void validateProgramTenant(
-            Tenant tenant,
-            Program program) {
+            Program program,
+            Tenant tenant) {
 
-        if (program.getTenant() == null
-                || program.getTenant()
+        if (program.getTenant() == null) {
+
+            throw new BadRequestException(
+                    "Program tenant is missing."
+            );
+        }
+
+
+        if (program.getTenant()
                 .getTenantId()
                 != tenant.getTenantId()) {
 
@@ -863,30 +1090,28 @@ public class ProgramController {
             Tenant tenant,
             Integer branchId) {
 
+        if (branchId == null) {
+
+            throw new BadRequestException(
+                    "Branch ID is required."
+            );
+        }
+
+
         Branch branch =
-                branchRepository.findById(
-                        branchId
-                ).orElseThrow(() ->
-                        new BadRequestException(
-                                "Branch not found."
+                branchRepository
+                        .findById(
+                                branchId
                         )
-                );
+                        .orElseThrow(() ->
+                                new BadRequestException(
+                                        "Branch not found."
+                                )
+                        );
 
-
-        validateBranch(
-                tenant,
-                branch
-        );
-    }
-
-
-    private void validateBranch(
-            Tenant tenant,
-            Branch branch) {
 
         if (branch.getTenant() == null
-                || branch.getTenant()
-                .getTenantId()
+                || branch.getTenant().getTenantId()
                 != tenant.getTenantId()) {
 
             throw new BadRequestException(
@@ -914,6 +1139,32 @@ public class ProgramController {
             String tenantNo,
             String deviceToken) {
 
+        // -------------------------------------------------
+        // BASIC VALIDATION
+        // -------------------------------------------------
+
+        if (tenantNo == null
+                || tenantNo.trim().isEmpty()) {
+
+            throw new BadRequestException(
+                    "Tenant number is required."
+            );
+        }
+
+
+        if (deviceToken == null
+                || deviceToken.trim().isEmpty()) {
+
+            throw new BadRequestException(
+                    "Device token is required."
+            );
+        }
+
+
+        // -------------------------------------------------
+        // FIND TENANT
+        // -------------------------------------------------
+
         Tenant tenant =
                 tenantRepository
                         .findByTenantNo(
@@ -926,6 +1177,10 @@ public class ProgramController {
                         );
 
 
+        // -------------------------------------------------
+        // TENANT STATUS
+        // -------------------------------------------------
+
         if (!Boolean.TRUE.equals(
                 tenant.getStatus()
         )) {
@@ -935,6 +1190,10 @@ public class ProgramController {
             );
         }
 
+
+        // -------------------------------------------------
+        // FIND DEVICE
+        // -------------------------------------------------
 
         RegisteredDevice device =
                 registeredDeviceRepository
@@ -948,6 +1207,10 @@ public class ProgramController {
                         );
 
 
+        // -------------------------------------------------
+        // DEVICE STATUS
+        // -------------------------------------------------
+
         if (!Boolean.TRUE.equals(
                 device.getStatus()
         )) {
@@ -957,6 +1220,10 @@ public class ProgramController {
             );
         }
 
+
+        // -------------------------------------------------
+        // DEVICE → TENANT
+        // -------------------------------------------------
 
         if (device.getTenant() == null
                 || device.getTenant()

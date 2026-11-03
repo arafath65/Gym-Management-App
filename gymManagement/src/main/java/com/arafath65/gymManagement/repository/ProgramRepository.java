@@ -11,9 +11,8 @@ import java.util.Optional;
 public interface ProgramRepository
         extends JpaRepository<Program, Integer> {
 
-
     // =====================================================
-    // FIND ALL TENANT PROGRAMS
+    // TENANT
     // =====================================================
 
     List<Program>
@@ -23,34 +22,12 @@ public interface ProgramRepository
 
 
     // =====================================================
-    // FIND ACTIVE TENANT PROGRAMS
+    // ACTIVE TENANT
     // =====================================================
 
     List<Program>
     findByTenant_TenantIdAndStatusTrueOrderByProgramNameAsc(
             Integer tenantId
-    );
-
-
-    // =====================================================
-    // FIND BY BRANCH
-    // =====================================================
-
-    List<Program>
-    findByTenant_TenantIdAndBranch_BranchIdOrderByProgramNameAsc(
-            Integer tenantId,
-            Integer branchId
-    );
-
-
-    // =====================================================
-    // FIND ACTIVE BY BRANCH
-    // =====================================================
-
-    List<Program>
-    findByTenant_TenantIdAndBranch_BranchIdAndStatusTrueOrderByProgramNameAsc(
-            Integer tenantId,
-            Integer branchId
     );
 
 

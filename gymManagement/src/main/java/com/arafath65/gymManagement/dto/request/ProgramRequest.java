@@ -1,20 +1,15 @@
 package com.arafath65.gymManagement.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class ProgramRequest {
-
-    // =====================================================
-    // BRANCH
-    // =====================================================
-
-    private Integer branchId;
-
 
     // =====================================================
     // CODE
@@ -58,35 +53,56 @@ public class ProgramRequest {
 
 
     // =====================================================
-    // FEE
+    // BRANCH MODE
     // =====================================================
 
-    @NotNull(
-            message = "Program fee is required."
+    /*
+     * ALL_BRANCHES
+     * SELECTED_BRANCHES
+     */
+    @NotBlank(
+            message = "Branch mode is required."
     )
+    private String branchMode;
+
+
+    // =====================================================
+    // DEFAULT FEE
+    // =====================================================
+
+    /*
+     * Used when branchMode = ALL_BRANCHES
+     */
     @DecimalMin(
             value = "0.00",
             inclusive = true,
-            message = "Program fee cannot be negative."
+            message = "Default fee cannot be negative."
     )
-    private BigDecimal fee;
+    private BigDecimal defaultFee;
+
+
+    // =====================================================
+    // SELECTED BRANCHES
+    // =====================================================
+
+    /*
+     * Used when branchMode = SELECTED_BRANCHES
+     */
+    @Valid
+    private List<ProgramBranchRequest> branches;
+
+
+    // =====================================================
+    // CONSTRUCTOR
+    // =====================================================
+
+    public ProgramRequest() {
+    }
 
 
     // =====================================================
     // GETTERS / SETTERS
     // =====================================================
-
-    public Integer getBranchId() {
-        return branchId;
-    }
-
-    public void setBranchId(
-            Integer branchId) {
-
-        this.branchId =
-                branchId;
-    }
-
 
     public String getProgramCode() {
         return programCode;
@@ -136,14 +152,38 @@ public class ProgramRequest {
     }
 
 
-    public BigDecimal getFee() {
-        return fee;
+    public String getBranchMode() {
+        return branchMode;
     }
 
-    public void setFee(
-            BigDecimal fee) {
+    public void setBranchMode(
+            String branchMode) {
 
-        this.fee =
-                fee;
+        this.branchMode =
+                branchMode;
+    }
+
+
+    public BigDecimal getDefaultFee() {
+        return defaultFee;
+    }
+
+    public void setDefaultFee(
+            BigDecimal defaultFee) {
+
+        this.defaultFee =
+                defaultFee;
+    }
+
+
+    public List<ProgramBranchRequest> getBranches() {
+        return branches;
+    }
+
+    public void setBranches(
+            List<ProgramBranchRequest> branches) {
+
+        this.branches =
+                branches;
     }
 }

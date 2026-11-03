@@ -2,8 +2,9 @@ package com.arafath65.gymManagement.entity;
 
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(
@@ -25,7 +26,9 @@ public class Program {
     // =====================================================
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(
+            strategy = GenerationType.IDENTITY
+    )
     @Column(name = "program_id")
     private Integer programId;
 
@@ -34,27 +37,15 @@ public class Program {
     // TENANT
     // =====================================================
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(
+            fetch = FetchType.LAZY,
+            optional = false
+    )
     @JoinColumn(
             name = "tenant_id",
             nullable = false
     )
     private Tenant tenant;
-
-
-    // =====================================================
-    // BRANCH
-    // =====================================================
-
-    /*
-     * NULL branch = available to all branches
-     *
-     * Specific branch = available only in that branch
-     */
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_id")
-    private Branch branch;
 
 
     // =====================================================
@@ -104,19 +95,6 @@ public class Program {
 
 
     // =====================================================
-    // PROGRAM FEE
-    // =====================================================
-
-    @Column(
-            name = "fee",
-            precision = 15,
-            scale = 2,
-            nullable = false
-    )
-    private BigDecimal fee;
-
-
-    // =====================================================
     // STATUS
     // =====================================================
 
@@ -143,6 +121,28 @@ public class Program {
             nullable = false
     )
     private LocalDateTime updatedAt;
+
+
+    // =====================================================
+    // BRANCH ASSIGNMENTS
+    // =====================================================
+
+    @OneToMany(
+            mappedBy = "program",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<ProgramBranch>
+            branchAssignments =
+            new ArrayList<>();
+
+
+    // =====================================================
+    // CONSTRUCTOR
+    // =====================================================
+
+    public Program() {
+    }
 
 
     // =====================================================
@@ -204,18 +204,6 @@ public class Program {
     }
 
 
-    public Branch getBranch() {
-        return branch;
-    }
-
-    public void setBranch(
-            Branch branch) {
-
-        this.branch =
-                branch;
-    }
-
-
     public String getProgramCode() {
         return programCode;
     }
@@ -264,18 +252,6 @@ public class Program {
     }
 
 
-    public BigDecimal getFee() {
-        return fee;
-    }
-
-    public void setFee(
-            BigDecimal fee) {
-
-        this.fee =
-                fee;
-    }
-
-
     public Boolean getStatus() {
         return status;
     }
@@ -292,7 +268,54 @@ public class Program {
         return createdAt;
     }
 
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+
+    public List<ProgramBranch>
+    getBranchAssignments() {
+
+        return branchAssignments;
+    }
+
+
+    public void setBranchAssignments(
+            List<ProgramBranch>
+                    branchAssignments) {
+
+        this.branchAssignments =
+                branchAssignments;
+    }
+
+
+    // =====================================================
+    // HELPER METHODS
+    // =====================================================
+
+    public void addBranchAssignment(
+            ProgramBranch assignment) {
+
+        branchAssignments.add(
+                assignment
+        );
+
+        assignment.setProgram(
+                this
+        );
+    }
+
+
+    public void removeBranchAssignment(
+            ProgramBranch assignment) {
+
+        branchAssignments.remove(
+                assignment
+        );
+
+        assignment.setProgram(
+                null
+        );
     }
 }

@@ -4,6 +4,7 @@ import com.arafath65.gymManagement.entity.MembershipPayment;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class MembershipPaymentResponse {
 
@@ -38,6 +39,14 @@ public class MembershipPaymentResponse {
 
     private Integer membershipRenewalId;
 
+    // =====================================================
+// BILLING CYCLE
+// =====================================================
+
+    private Integer membershipBillingCycleId;
+
+    private String cycleNumber;
+
 
     // PAYMENT
 
@@ -56,6 +65,9 @@ public class MembershipPaymentResponse {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private List<MembershipPaymentDetailResponse>
+            paymentDetails;
 
 
     // GETTERS / SETTERS
@@ -136,6 +148,29 @@ public class MembershipPaymentResponse {
         return paymentNumber;
     }
 
+    public Integer getMembershipBillingCycleId() {
+        return membershipBillingCycleId;
+    }
+
+    public void setMembershipBillingCycleId(
+            Integer membershipBillingCycleId) {
+
+        this.membershipBillingCycleId =
+                membershipBillingCycleId;
+    }
+
+
+    public String getCycleNumber() {
+        return cycleNumber;
+    }
+
+    public void setCycleNumber(
+            String cycleNumber) {
+
+        this.cycleNumber =
+                cycleNumber;
+    }
+
     public void setPaymentNumber(
             String paymentNumber) {
         this.paymentNumber =
@@ -195,6 +230,20 @@ public class MembershipPaymentResponse {
     public void setCreatedAt(
             LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public List<MembershipPaymentDetailResponse>
+    getPaymentDetails() {
+
+        return paymentDetails;
+    }
+
+    public void setPaymentDetails(
+            List<MembershipPaymentDetailResponse>
+                    paymentDetails) {
+
+        this.paymentDetails =
+                paymentDetails;
     }
 
     public LocalDateTime getUpdatedAt() {

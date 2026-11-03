@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    android:orientation="vertical"
+    android:padding="22dp"
+
+    android:background="@color/login_card">
+
+
+    <!-- ================================================= -->
+    <!-- HEADER                                            -->
+    <!-- ================================================= -->
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:text="Add Benefit"
+        android:textColor="@color/text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold"/>
+
+
+    <TextView
+        android:id="@+id/txtAssignBenefitMember"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="4dp"
+
+        android:text="Select a benefit from this membership plan"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"/>
+
+
+    <!-- ================================================= -->
+    <!-- BENEFIT                                            -->
+    <!-- ================================================= -->
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutBenefit"
+
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="20dp"
+
+        android:hint="Benefit"
+
+        app:boxBackgroundColor="@color/login_card"
+        app:boxStrokeColor="@color/login_stroke"
+        app:hintTextColor="@color/hint">
+
+
+        <AutoCompleteTextView
+            android:id="@+id/autoBenefit"
+
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+
+            android:inputType="none"
+
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/hint"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+
+    <!-- ================================================= -->
+    <!-- BENEFIT INFO                                      -->
+    <!-- ================================================= -->
+
+    <LinearLayout
+        android:id="@+id/benefitInfoContainer"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="12dp"
+
+        android:orientation="horizontal"
+
+        android:visibility="gone">
+
+
+        <!-- TYPE -->
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+
+            android:layout_weight="1"
+
+            android:orientation="vertical">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="TYPE"
+                android:textColor="@color/text_secondary"
+                android:textSize="9sp"
+                android:textStyle="bold"/>
+
+
+            <TextView
+                android:id="@+id/txtSelectedBenefitType"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="3dp"
+
+                android:text="-"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+
+
+        <!-- FEE -->
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+
+            android:layout_weight="1"
+
+            android:orientation="vertical">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="FEE"
+                android:textColor="@color/text_secondary"
+                android:textSize="9sp"
+                android:textStyle="bold"/>
+
+
+            <TextView
+                android:id="@+id/txtSelectedBenefitFee"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="3dp"
+
+                android:text="Rs. 0.00"
+                android:textColor="@color/green_light"
+                android:textSize="13sp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+    <!-- ================================================= -->
+    <!-- START DATE                                        -->
+    <!-- ================================================= -->
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutBenefitStartDate"
+
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="15dp"
+
+        android:hint="Start Date"
+
+        app:boxBackgroundColor="@color/login_card"
+        app:boxStrokeColor="@color/login_stroke"
+        app:hintTextColor="@color/hint">
+
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/txtBenefitStartDate"
+
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+
+            android:focusable="false"
+            android:clickable="true"
+
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/hint"
+            android:background="@null"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+
+    <!-- ================================================= -->
+    <!-- NOTES                                             -->
+    <!-- ================================================= -->
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutBenefitNotes"
+
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="12dp"
+
+        android:hint="Notes (Optional)"
+
+        app:boxBackgroundColor="@color/login_card"
+        app:boxStrokeColor="@color/login_stroke"
+        app:hintTextColor="@color/hint">
+
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/txtBenefitNotes"
+
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+
+            android:gravity="top"
+
+            android:inputType="textMultiLine"
+
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/hint"
+
+            android:background="@null"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+
+    <!-- ================================================= -->
+    <!-- BUTTONS                                           -->
+    <!-- ================================================= -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="20dp"
+
+        android:gravity="end"
+
+        android:orientation="horizontal">
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelAssignBenefit"
+
+            android:layout_width="wrap_content"
+            android:layout_height="46dp"
+
+            android:text="Cancel"
+            android:textAllCaps="false"
+
+            android:textColor="@color/text_primary"
+
+            app:backgroundTint="@color/login_stroke"/>
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAssignBenefit"
+
+            android:layout_width="wrap_content"
+            android:layout_height="46dp"
+
+            android:layout_marginStart="10dp"
+
+            android:text="Add Benefit"
+            android:textAllCaps="false"
+
+            android:textColor="@android:color/white"
+
+            app:backgroundTint="@color/green_primary"/>
+
+    </LinearLayout>
+
+</LinearLayout>

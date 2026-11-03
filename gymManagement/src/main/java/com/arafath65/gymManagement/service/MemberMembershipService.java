@@ -1,9 +1,19 @@
 package com.arafath65.gymManagement.service;
 
 import com.arafath65.gymManagement.entity.MemberMembership;
+import com.arafath65.gymManagement.entity.MemberMembershipBenefit;
 import com.arafath65.gymManagement.entity.MembershipPlan;
+import com.arafath65.gymManagement.entity.MembershipPlanBenefit;
+import com.arafath65.gymManagement.entity.MembershipPlanBranch;
+import com.arafath65.gymManagement.repository.MemberMembershipBenefitRepository;
 import com.arafath65.gymManagement.repository.MemberMembershipRepository;
+import com.arafath65.gymManagement.repository.MembershipPlanBenefitRepository;
+import com.arafath65.gymManagement.repository.MembershipPlanBranchRepository;
 import com.arafath65.gymManagement.repository.MembershipPlanRepository;
+import com.arafath65.gymManagement.dto.request.MemberMembershipPlanRequest;
+import com.arafath65.gymManagement.entity.MembershipChangeSettlement;
+import com.arafath65.gymManagement.repository.MembershipChangeSettlementRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,20 +26,65 @@ import java.util.Optional;
 @Transactional
 public class MemberMembershipService {
 
-    private final MemberMembershipRepository memberMembershipRepository;
+    private final MemberMembershipRepository
+            memberMembershipRepository;
 
-    private final MembershipPlanRepository membershipPlanRepository;
+    private final MembershipPlanRepository
+            membershipPlanRepository;
 
+    private final MembershipPlanBranchRepository
+            membershipPlanBranchRepository;
+
+    private final MembershipPlanBenefitRepository
+            membershipPlanBenefitRepository;
+
+    private final MemberMembershipBenefitRepository
+            memberMembershipBenefitRepository;
+
+    private final MembershipChangeSettlementRepository
+            membershipChangeSettlementRepository;
+
+
+    // =====================================================
+    // CONSTRUCTOR
+    // =====================================================
 
     public MemberMembershipService(
-            MemberMembershipRepository memberMembershipRepository,
-            MembershipPlanRepository membershipPlanRepository) {
+            MemberMembershipRepository
+                    memberMembershipRepository,
+
+            MembershipPlanRepository
+                    membershipPlanRepository,
+
+            MembershipPlanBranchRepository
+                    membershipPlanBranchRepository,
+
+            MembershipPlanBenefitRepository
+                    membershipPlanBenefitRepository,
+
+            MemberMembershipBenefitRepository
+                    memberMembershipBenefitRepository,
+
+            MembershipChangeSettlementRepository
+                    membershipChangeSettlementRepository) {
 
         this.memberMembershipRepository =
                 memberMembershipRepository;
 
         this.membershipPlanRepository =
                 membershipPlanRepository;
+
+        this.membershipPlanBranchRepository =
+                membershipPlanBranchRepository;
+
+        this.membershipPlanBenefitRepository =
+                membershipPlanBenefitRepository;
+
+        this.memberMembershipBenefitRepository =
+                memberMembershipBenefitRepository;
+
+        this.membershipChangeSettlementRepository =
+                membershipChangeSettlementRepository;
     }
 
 
@@ -98,6 +153,51 @@ public class MemberMembershipService {
 
 
         // -------------------------------------------------
+        // MEMBERSHIP NUMBER
+        // -------------------------------------------------
+
+        String membershipNumber =
+                membership.getMembershipNumber();
+
+
+        if (membershipNumber == null
+                || membershipNumber.trim().isEmpty()) {
+
+            membershipNumber =
+                    "TEMP-" + System.nanoTime();
+        }
+
+
+        membershipNumber =
+                membershipNumber
+                        .trim()
+                        .toUpperCase();
+
+
+        membership.setMembershipNumber(
+                membershipNumber
+        );
+
+
+        // -------------------------------------------------
+        // DUPLICATE MEMBERSHIP NUMBER
+        // -------------------------------------------------
+
+        if (!membershipNumber.startsWith("TEMP-")
+                && memberMembershipRepository
+                .existsByTenant_TenantIdAndBranch_BranchIdAndMembershipNumber(
+                        tenantId,
+                        branchId,
+                        membershipNumber
+                )) {
+
+            throw new IllegalArgumentException(
+                    "Membership number already exists."
+            );
+        }
+
+
+        // -------------------------------------------------
         // LOAD PLAN
         // -------------------------------------------------
 
@@ -106,9 +206,19 @@ public class MemberMembershipService {
                         .getMembershipPlanId();
 
 
+        if (planId == null) {
+
+            throw new IllegalArgumentException(
+                    "Membership plan ID is required."
+            );
+        }
+
+
         MembershipPlan plan =
                 membershipPlanRepository
-                        .findById(planId)
+                        .findById(
+                                planId
+                        )
                         .orElseThrow(
                                 () -> new IllegalArgumentException(
                                         "Membership plan not found."
@@ -120,7 +230,8 @@ public class MemberMembershipService {
         // VERIFY PLAN TENANT
         // -------------------------------------------------
 
-        if (plan.getTenant()
+        if (plan.getTenant() == null
+                || plan.getTenant()
                 .getTenantId()
                 != tenantId) {
 
@@ -145,16 +256,63 @@ public class MemberMembershipService {
 
 
         // -------------------------------------------------
+        // FIND PLAN BRANCH ASSIGNMENT
+        // -------------------------------------------------
+
+        MembershipPlanBranch planBranch =
+                membershipPlanBranchRepository
+                        .findByTenant_TenantIdAndMembershipPlan_MembershipPlanIdAndBranch_BranchId(
+                                tenantId,
+                                plan.getMembershipPlanId(),
+                                branchId
+                        )
+                        .orElseThrow(
+                                () -> new IllegalArgumentException(
+                                        "Membership plan is not available for this branch."
+                                )
+                        );
+
+
+        // -------------------------------------------------
+        // VERIFY PLAN BRANCH TENANT
+        // -------------------------------------------------
+
+        if (planBranch.getTenant() == null
+                || planBranch.getTenant()
+                .getTenantId()
+                != tenantId) {
+
+            throw new IllegalArgumentException(
+                    "Membership plan branch assignment does not belong to this tenant."
+            );
+        }
+
+
+        // -------------------------------------------------
         // VERIFY PLAN BRANCH
         // -------------------------------------------------
 
-        if (plan.getBranch() != null
-                && plan.getBranch()
+        if (planBranch.getBranch() == null
+                || planBranch.getBranch()
                 .getBranchId()
                 != branchId) {
 
             throw new IllegalArgumentException(
                     "Membership plan is not available for this branch."
+            );
+        }
+
+
+        // -------------------------------------------------
+        // VERIFY PLAN BRANCH STATUS
+        // -------------------------------------------------
+
+        if (!Boolean.TRUE.equals(
+                planBranch.getStatus()
+        )) {
+
+            throw new IllegalArgumentException(
+                    "Membership plan is inactive for this branch."
             );
         }
 
@@ -210,19 +368,19 @@ public class MemberMembershipService {
 
         BigDecimal planPrice =
                 safe(
-                        plan.getPrice()
+                        planBranch.getPrice()
                 );
 
 
         BigDecimal joiningFee =
                 safe(
-                        plan.getJoiningFee()
+                        planBranch.getJoiningFee()
                 );
 
 
         BigDecimal renewalFee =
                 safe(
-                        plan.getRenewalFee()
+                        planBranch.getRenewalFee()
                 );
 
 
@@ -267,13 +425,32 @@ public class MemberMembershipService {
 
 
         // -------------------------------------------------
-        // TOTAL
+        // INITIAL TOTAL
         // -------------------------------------------------
+
+        /*
+         * At membership creation time there are
+         * no member-level purchased benefits yet.
+         *
+         * Plan Price
+         * + Joining Fee
+         * - Discount
+         * = Initial Total
+         */
 
         BigDecimal totalAmount =
                 planPrice
                         .add(joiningFee)
                         .subtract(discount);
+
+
+        if (totalAmount.compareTo(
+                BigDecimal.ZERO
+        ) < 0) {
+
+            totalAmount =
+                    BigDecimal.ZERO;
+        }
 
 
         membership.setTotalAmount(
@@ -324,23 +501,6 @@ public class MemberMembershipService {
 
 
         // -------------------------------------------------
-        // TEMPORARY MEMBERSHIP NUMBER
-        // -------------------------------------------------
-
-        /*
-         * MySQL generates the membership ID.
-         *
-         * membership_number is NOT NULL,
-         * therefore a temporary value is required
-         * for the first INSERT.
-         */
-
-        membership.setMembershipNumber(
-                "TEMP-" + System.nanoTime()
-        );
-
-
-        // -------------------------------------------------
         // FIRST SAVE
         // -------------------------------------------------
 
@@ -351,28 +511,651 @@ public class MemberMembershipService {
 
 
         // -------------------------------------------------
-        // GENERATE FINAL MEMBERSHIP NUMBER
+        // GENERATE FINAL NUMBER
         // -------------------------------------------------
 
-        String membershipNumber =
-                String.format(
-                        "MEM-%06d",
-                        savedMembership
-                                .getMemberMembershipId()
-                );
+        if (savedMembership.getMembershipNumber()
+                .startsWith("TEMP-")) {
+
+            String finalMembershipNumber =
+                    String.format(
+                            "MEM-%06d",
+                            savedMembership
+                                    .getMemberMembershipId()
+                    );
 
 
-        savedMembership.setMembershipNumber(
-                membershipNumber
-        );
+            savedMembership.setMembershipNumber(
+                    finalMembershipNumber
+            );
+        }
 
 
         // -------------------------------------------------
         // FINAL SAVE
         // -------------------------------------------------
 
+        savedMembership =
+                memberMembershipRepository.save(
+                        savedMembership
+                );
+
+
+        // -------------------------------------------------
+        // AUTOMATIC PLAN BENEFITS
+        // -------------------------------------------------
+
+        assignIncludedPlanBenefits(
+                tenantId,
+                savedMembership,
+                plan
+        );
+
+
+        // -------------------------------------------------
+        // RETURN
+        // -------------------------------------------------
+
+        return savedMembership;
+    }
+
+
+    // =====================================================
+    // ASSIGN INCLUDED PLAN BENEFITS
+    // =====================================================
+
+    private void assignIncludedPlanBenefits(
+            Integer tenantId,
+            MemberMembership membership,
+            MembershipPlan plan) {
+
+        if (membership == null
+                || membership.getMemberMembershipId() == null) {
+
+            throw new IllegalArgumentException(
+                    "Saved membership is required before assigning benefits."
+            );
+        }
+
+
+        if (plan == null
+                || plan.getMembershipPlanId() == null) {
+
+            return;
+        }
+
+
+        // -------------------------------------------------
+        // LOAD ACTIVE PLAN BENEFITS
+        // -------------------------------------------------
+
+        List<MembershipPlanBenefit> planBenefits =
+                membershipPlanBenefitRepository
+                        .findByTenant_TenantIdAndMembershipPlan_MembershipPlanIdAndStatusTrue(
+                                tenantId,
+                                plan.getMembershipPlanId()
+                        );
+
+
+        if (planBenefits == null
+                || planBenefits.isEmpty()) {
+
+            return;
+        }
+
+
+        // -------------------------------------------------
+        // ASSIGN INCLUDED BENEFITS
+        // -------------------------------------------------
+
+        for (
+                MembershipPlanBenefit planBenefit
+                : planBenefits) {
+
+            if (planBenefit == null) {
+
+                continue;
+            }
+
+
+            // -------------------------------------------------
+            // ONLY INCLUDED BENEFITS
+            // -------------------------------------------------
+
+            if (planBenefit.getBenefitType()
+                    != MembershipPlanBenefit.BenefitType.INCLUDED) {
+
+                continue;
+            }
+
+
+            // -------------------------------------------------
+            // BENEFIT VALIDATION
+            // -------------------------------------------------
+
+            if (planBenefit.getBenefit() == null
+                    || planBenefit.getBenefit()
+                    .getBenefitId() == null) {
+
+                continue;
+            }
+
+
+            Integer benefitId =
+                    planBenefit.getBenefit()
+                            .getBenefitId();
+
+
+            // -------------------------------------------------
+            // CHECK DUPLICATE ACTIVE BENEFIT
+            // -------------------------------------------------
+
+            boolean alreadyExists =
+                    memberMembershipBenefitRepository
+                            .existsByTenant_TenantIdAndMemberMembership_MemberMembershipIdAndBenefit_BenefitIdAndStatusTrue(
+                                    tenantId,
+                                    membership.getMemberMembershipId(),
+                                    benefitId
+                            );
+
+
+            if (alreadyExists) {
+
+                continue;
+            }
+
+
+            // -------------------------------------------------
+            // CREATE MEMBER BENEFIT
+            // -------------------------------------------------
+
+            MemberMembershipBenefit
+                    memberMembershipBenefit =
+                    new MemberMembershipBenefit();
+
+
+            // -------------------------------------------------
+            // TENANT
+            // -------------------------------------------------
+
+            memberMembershipBenefit.setTenant(
+                    membership.getTenant()
+            );
+
+
+            // -------------------------------------------------
+            // BRANCH
+            // -------------------------------------------------
+
+            memberMembershipBenefit.setBranch(
+                    membership.getBranch()
+            );
+
+
+            // -------------------------------------------------
+            // MEMBERSHIP
+            // -------------------------------------------------
+
+            memberMembershipBenefit.setMemberMembership(
+                    membership
+            );
+
+
+            // -------------------------------------------------
+            // BENEFIT
+            // -------------------------------------------------
+
+            memberMembershipBenefit.setBenefit(
+                    planBenefit.getBenefit()
+            );
+
+
+            // -------------------------------------------------
+            // SOURCE
+            // -------------------------------------------------
+
+            memberMembershipBenefit.setSourceType(
+                    MemberMembershipBenefit.SourceType.INCLUDED
+            );
+
+
+            // -------------------------------------------------
+            // INCLUDED BENEFIT FEE
+            // -------------------------------------------------
+
+            /*
+             * INCLUDED benefits are already part of
+             * the membership plan price.
+             *
+             * Therefore they must not add another
+             * charge to the membership.
+             */
+
+            memberMembershipBenefit.setFee(
+                    BigDecimal.ZERO
+            );
+
+
+            // -------------------------------------------------
+            // VALIDITY
+            // -------------------------------------------------
+
+            /*
+             * Membership-plan included benefits follow
+             * the membership validity period.
+             */
+
+            memberMembershipBenefit.setStartDate(
+                    membership.getStartDate()
+            );
+
+
+            memberMembershipBenefit.setEndDate(
+                    membership.getEndDate()
+            );
+
+
+            // -------------------------------------------------
+            // STATUS
+            // -------------------------------------------------
+
+            memberMembershipBenefit.setStatus(
+                    true
+            );
+
+
+            // -------------------------------------------------
+            // NOTES
+            // -------------------------------------------------
+
+            memberMembershipBenefit.setNotes(
+                    "Included with membership plan."
+            );
+
+
+            // -------------------------------------------------
+            // SAVE
+            // -------------------------------------------------
+
+            memberMembershipBenefitRepository.save(
+                    memberMembershipBenefit
+            );
+        }
+    }
+
+
+    // =====================================================
+    // ASSIGN / CHANGE MEMBERSHIP PLAN
+    // =====================================================
+
+
+    public MemberMembership assignMembershipPlan(
+            Integer tenantId,
+            Integer memberMembershipId,
+            Integer membershipPlanId,
+            LocalDate startDate,
+            MemberMembershipPlanRequest.SettlementType settlementType,
+            BigDecimal settlementAmount,
+            String settlementReason,
+            String notes) {
+
+        // 1. Validate settlement details.
+        if (settlementType == null) {
+            throw new IllegalArgumentException(
+                    "Settlement type is required."
+            );
+        }
+
+        BigDecimal amount = safe(settlementAmount);
+
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException(
+                    "Settlement amount cannot be negative."
+            );
+        }
+
+        if (settlementType
+                == MemberMembershipPlanRequest.SettlementType.NONE
+                && amount.compareTo(BigDecimal.ZERO) != 0) {
+            throw new IllegalArgumentException(
+                    "Settlement amount must be zero when settlement type is NONE."
+            );
+        }
+
+        if (settlementReason != null
+                && settlementReason.length() > 1000) {
+            throw new IllegalArgumentException(
+                    "Settlement reason cannot exceed 1000 characters."
+            );
+        }
+
+        // 2. Load the existing membership.
+        MemberMembership oldMembership =
+                memberMembershipRepository.findById(memberMembershipId)
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Membership not found."
+                        ));
+
+        if (oldMembership.getTenant() == null
+                || !tenantId.equals(
+                oldMembership.getTenant().getTenantId())) {
+            throw new IllegalArgumentException(
+                    "Membership does not belong to this tenant."
+            );
+        }
+
+        if (oldMembership.getBranch() == null
+                || oldMembership.getMember() == null) {
+            throw new IllegalArgumentException(
+                    "Membership branch or member is missing."
+            );
+        }
+
+        if (Boolean.FALSE.equals(oldMembership.getStatus())
+                || oldMembership.getMembershipState()
+                == MemberMembership.MembershipState.CANCELLED) {
+            throw new IllegalArgumentException(
+                    "An inactive or cancelled membership cannot be changed."
+            );
+        }
+
+        Integer branchId =
+                oldMembership.getBranch().getBranchId();
+
+        // 3. Load and validate the new plan.
+        MembershipPlan plan =
+                membershipPlanRepository.findById(membershipPlanId)
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Membership plan not found."
+                        ));
+
+        if (plan.getTenant() == null
+                || !tenantId.equals(plan.getTenant().getTenantId())) {
+            throw new IllegalArgumentException(
+                    "Membership plan does not belong to this tenant."
+            );
+        }
+
+        if (!Boolean.TRUE.equals(plan.getStatus())) {
+            throw new IllegalArgumentException(
+                    "Membership plan is inactive."
+            );
+        }
+
+        MembershipPlanBranch planBranch =
+                membershipPlanBranchRepository
+                        .findByTenant_TenantIdAndMembershipPlan_MembershipPlanIdAndBranch_BranchId(
+                                tenantId,
+                                membershipPlanId,
+                                branchId
+                        )
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Membership plan is not available for this branch."
+                        ));
+
+        if (!Boolean.TRUE.equals(planBranch.getStatus())) {
+            throw new IllegalArgumentException(
+                    "Membership plan is inactive for this branch."
+            );
+        }
+
+        // 4. Create a NEW membership, preserving the old record.
+        MemberMembership newMembership = new MemberMembership();
+
+        newMembership.setTenant(oldMembership.getTenant());
+        newMembership.setBranch(oldMembership.getBranch());
+        newMembership.setMember(oldMembership.getMember());
+        newMembership.setMembershipPlan(plan);
+
+        newMembership.setStartDate(
+                startDate != null ? startDate : LocalDate.now()
+        );
+
+        // The existing create() method calculates the end date,
+        // snapshots branch pricing and assigns included benefits.
+        newMembership.setDiscountAmount(BigDecimal.ZERO);
+
+        String newNotes = notes == null ? "" : notes.trim();
+        newMembership.setNotes(
+                newNotes.isEmpty()
+                        ? "Created by changing membership plan from "
+                          + oldMembership.getMembershipNumber()
+                        : newNotes
+        );
+
+        newMembership = create(newMembership);
+
+        // 5. Record the settlement separately.
+        MembershipChangeSettlement settlement =
+                new MembershipChangeSettlement();
+
+        settlement.setTenant(oldMembership.getTenant());
+        settlement.setBranch(oldMembership.getBranch());
+        settlement.setOldMembership(oldMembership);
+        settlement.setNewMembership(newMembership);
+        settlement.setSettlementAmount(amount);
+        settlement.setSettlementReason(settlementReason);
+
+        switch (settlementType) {
+            case NONE:
+                settlement.setSettlementType(
+                        MembershipChangeSettlement.SettlementType.NONE
+                );
+                break;
+
+            case CARRY_FORWARD:
+                settlement.setSettlementType(
+                        MembershipChangeSettlement.SettlementType.CARRY_FORWARD
+                );
+                break;
+
+            case REFUND:
+                settlement.setSettlementType(
+                        MembershipChangeSettlement.SettlementType.REFUND
+                );
+                break;
+
+            case WAIVE:
+                settlement.setSettlementType(
+                        MembershipChangeSettlement.SettlementType.WAIVE_BALANCE
+                );
+                break;
+
+            default:
+                throw new IllegalArgumentException(
+                        "Unsupported settlement type."
+                );
+        }
+
+        membershipChangeSettlementRepository.save(settlement);
+
+        // 6. Mark the old membership as cancelled only after the
+        // new membership and settlement have been saved.
+        oldMembership.setMembershipState(
+                MemberMembership.MembershipState.CANCELLED
+        );
+
+        String oldNotes = oldMembership.getNotes() == null
+                ? ""
+                : oldMembership.getNotes().trim();
+
+        String changeNote =
+                "Membership plan changed to "
+                        + newMembership.getMembershipNumber()
+                        + " on "
+                        + LocalDate.now() + ".";
+
+        oldMembership.setNotes(
+                oldNotes.isEmpty()
+                        ? changeNote
+                        : oldNotes + "\n" + changeNote
+        );
+
+        memberMembershipRepository.save(oldMembership);
+
+        return newMembership;
+    }
+
+
+
+    // =====================================================
+    // RECALCULATE MEMBERSHIP FINANCIALS
+    // =====================================================
+
+    public MemberMembership recalculateFinancials(
+            Integer membershipId) {
+
+        MemberMembership membership =
+                memberMembershipRepository
+                        .findById(
+                                membershipId
+                        )
+                        .orElseThrow(
+                                () -> new IllegalArgumentException(
+                                        "Membership not found."
+                                )
+                        );
+
+
+        if (membership.getTenant() == null) {
+
+            throw new IllegalArgumentException(
+                    "Membership tenant is missing."
+            );
+        }
+
+
+        Integer tenantId =
+                membership.getTenant()
+                        .getTenantId();
+
+
+        // -------------------------------------------------
+        // BASE MEMBERSHIP AMOUNT
+        // -------------------------------------------------
+
+        BigDecimal planPrice =
+                safe(
+                        membership.getPlanPrice()
+                );
+
+
+        BigDecimal joiningFee =
+                safe(
+                        membership.getJoiningFee()
+                );
+
+
+        BigDecimal discount =
+                safe(
+                        membership.getDiscountAmount()
+                );
+
+
+        // -------------------------------------------------
+        // ACTIVE MEMBER BENEFITS
+        // -------------------------------------------------
+
+        List<MemberMembershipBenefit> benefits =
+                memberMembershipBenefitRepository
+                        .findByTenant_TenantIdAndMemberMembership_MemberMembershipIdAndStatusTrue(
+                                tenantId,
+                                membershipId
+                        );
+
+
+        // -------------------------------------------------
+        // PURCHASED BENEFIT TOTAL
+        // -------------------------------------------------
+
+        BigDecimal purchasedBenefitTotal =
+                BigDecimal.ZERO;
+
+
+        for (
+                MemberMembershipBenefit benefit
+                : benefits) {
+
+            if (benefit == null) {
+                continue;
+            }
+
+
+            if (benefit.getSourceType()
+                    == MemberMembershipBenefit.SourceType.PURCHASED) {
+
+                purchasedBenefitTotal =
+                        purchasedBenefitTotal.add(
+                                safe(
+                                        benefit.getFee()
+                                )
+                        );
+            }
+        }
+
+
+        // -------------------------------------------------
+        // FINAL TOTAL
+        // -------------------------------------------------
+
+        BigDecimal totalAmount =
+                planPrice
+                        .add(joiningFee)
+                        .add(purchasedBenefitTotal)
+                        .subtract(discount);
+
+
+        if (totalAmount.compareTo(
+                BigDecimal.ZERO
+        ) < 0) {
+
+            totalAmount =
+                    BigDecimal.ZERO;
+        }
+
+
+        membership.setTotalAmount(
+                totalAmount
+        );
+
+
+        // -------------------------------------------------
+        // EXISTING PAID AMOUNT
+        // -------------------------------------------------
+
+        BigDecimal paidAmount =
+                safe(
+                        membership.getPaidAmount()
+                );
+
+
+        if (paidAmount.compareTo(
+                totalAmount
+        ) > 0) {
+
+            throw new IllegalArgumentException(
+                    "Existing paid amount cannot be greater than the recalculated total amount."
+            );
+        }
+
+
+        // -------------------------------------------------
+        // BALANCE
+        // -------------------------------------------------
+
+        BigDecimal balanceAmount =
+                totalAmount.subtract(
+                        paidAmount
+                );
+
+
+        membership.setBalanceAmount(
+                balanceAmount
+        );
+
+
         return memberMembershipRepository.save(
-                savedMembership
+                membership
         );
     }
 
@@ -449,9 +1232,10 @@ public class MemberMembershipService {
     public Optional<MemberMembership> findById(
             Integer membershipId) {
 
-        return memberMembershipRepository.findById(
-                membershipId
-        );
+        return memberMembershipRepository
+                .findById(
+                        membershipId
+                );
     }
 
 
@@ -511,7 +1295,8 @@ public class MemberMembershipService {
     // =====================================================
 
     @Transactional(readOnly = true)
-    public Optional<MemberMembership> findByMembershipNumber(
+    public Optional<MemberMembership>
+    findByMembershipNumber(
             Integer tenantId,
             String membershipNumber) {
 
@@ -590,7 +1375,8 @@ public class MemberMembershipService {
     // =====================================================
 
     @Transactional(readOnly = true)
-    public List<MemberMembership> findByBranchAndMembershipState(
+    public List<MemberMembership>
+    findByBranchAndMembershipState(
             int tenantId,
             int branchId,
             MemberMembership.MembershipState membershipState) {
@@ -653,13 +1439,15 @@ public class MemberMembershipService {
             BigDecimal paidAmount) {
 
         MemberMembership membership =
-                memberMembershipRepository.findById(
-                        membershipId
-                ).orElseThrow(
-                        () -> new IllegalArgumentException(
-                                "Membership not found."
+                memberMembershipRepository
+                        .findById(
+                                membershipId
                         )
-                );
+                        .orElseThrow(
+                                () -> new IllegalArgumentException(
+                                        "Membership not found."
+                                )
+                        );
 
 
         BigDecimal totalAmount =
@@ -723,13 +1511,15 @@ public class MemberMembershipService {
 
 
         MemberMembership membership =
-                memberMembershipRepository.findById(
-                        membershipId
-                ).orElseThrow(
-                        () -> new IllegalArgumentException(
-                                "Membership not found."
+                memberMembershipRepository
+                        .findById(
+                                membershipId
                         )
-                );
+                        .orElseThrow(
+                                () -> new IllegalArgumentException(
+                                        "Membership not found."
+                                )
+                        );
 
 
         membership.setStatus(
@@ -751,13 +1541,15 @@ public class MemberMembershipService {
             Integer membershipId) {
 
         MemberMembership membership =
-                memberMembershipRepository.findById(
-                        membershipId
-                ).orElseThrow(
-                        () -> new IllegalArgumentException(
-                                "Membership not found."
+                memberMembershipRepository
+                        .findById(
+                                membershipId
                         )
-                );
+                        .orElseThrow(
+                                () -> new IllegalArgumentException(
+                                        "Membership not found."
+                                )
+                        );
 
 
         membership.setStatus(
@@ -795,7 +1587,8 @@ public class MemberMembershipService {
         int updatedCount = 0;
 
 
-        for (MemberMembership membership
+        for (
+                MemberMembership membership
                 : memberships) {
 
             membership.setMembershipState(
@@ -824,13 +1617,15 @@ public class MemberMembershipService {
             Integer membershipId) {
 
         MemberMembership membership =
-                memberMembershipRepository.findById(
-                        membershipId
-                ).orElseThrow(
-                        () -> new IllegalArgumentException(
-                                "Membership not found."
+                memberMembershipRepository
+                        .findById(
+                                membershipId
                         )
-                );
+                        .orElseThrow(
+                                () -> new IllegalArgumentException(
+                                        "Membership not found."
+                                )
+                        );
 
 
         if (membership.getMembershipState()
@@ -842,16 +1637,11 @@ public class MemberMembershipService {
         }
 
 
-        /*
-         * Cancellation changes only the lifecycle state.
-         *
-         * status remains unchanged.
-         */
-
         membership.setMembershipState(
                 MemberMembership.MembershipState.CANCELLED
         );
 
+        membership.setStatus(false);
 
         return memberMembershipRepository.save(
                 membership

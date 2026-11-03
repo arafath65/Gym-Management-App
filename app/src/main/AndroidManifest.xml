@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
+        android:name=".GymManagementApplication"
         android:allowBackup="true"
         android:usesCleartextTraffic="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -26,6 +27,18 @@
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainDashboard.AddMemberActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MainDashboard.AddProgramActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MainDashboard.AddBenefitActivity"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".MainDashboard.AddMembershipPlanActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MainDashboard.CreateMembershipActivity"
             android:exported="false" />
         <activity
             android:name=".MainDashboard.AddFitnessAssessmentActivity"

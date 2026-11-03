@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    android:layout_marginBottom="8dp"
+
+    app:cardBackgroundColor="@color/login_card"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="1dp">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:orientation="vertical"
+        android:padding="15dp">
+
+
+        <!-- ================================================= -->
+        <!-- HEADER                                            -->
+        <!-- ================================================= -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:gravity="center_vertical">
+
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+
+                android:layout_weight="1"
+
+                android:orientation="vertical">
+
+
+                <TextView
+                    android:id="@+id/txtProgramName"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:text="60 Days Weight Loss Program"
+
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+
+                    android:maxLines="1"
+                    android:ellipsize="end"/>
+
+
+                <TextView
+                    android:id="@+id/txtProgramCode"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="3dp"
+
+                    android:text="WL-60"
+
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"/>
+
+            </LinearLayout>
+
+
+            <TextView
+                android:id="@+id/txtProgramStatus"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="ACTIVE"
+
+                android:textColor="@color/green_primary"
+                android:textSize="10sp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+
+
+        <!-- ================================================= -->
+        <!-- DIVIDER                                           -->
+        <!-- ================================================= -->
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+
+            android:layout_marginTop="12dp"
+
+            android:background="@color/border_color"/>
+
+
+        <!-- ================================================= -->
+        <!-- DETAILS                                           -->
+        <!-- ================================================= -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="12dp"
+
+            android:orientation="horizontal">
+
+
+            <!-- DURATION -->
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+
+                android:layout_weight="1"
+
+                android:orientation="vertical">
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="DURATION"
+
+                    android:textColor="@color/text_secondary"
+                    android:textSize="9sp"
+                    android:textStyle="bold"/>
+
+
+                <TextView
+                    android:id="@+id/txtProgramDuration"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="3dp"
+
+                    android:text="60 Days"
+
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold"/>
+
+            </LinearLayout>
+
+
+            <!-- FEE -->
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+
+                android:layout_weight="1"
+
+                android:orientation="vertical">
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="PROGRAM FEE"
+
+                    android:textColor="@color/text_secondary"
+                    android:textSize="9sp"
+                    android:textStyle="bold"/>
+
+
+                <TextView
+                    android:id="@+id/txtProgramFee"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="3dp"
+
+                    android:text="Rs. 60,000.00"
+
+                    android:textColor="@color/green_light"
+                    android:textSize="12sp"
+                    android:textStyle="bold"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+        <!-- ================================================= -->
+        <!-- DATES                                             -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:id="@+id/txtProgramDates"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="11dp"
+
+            android:text="2026-08-27  →  2026-10-26"
+
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"/>
+
+
+        <!-- ================================================= -->
+        <!-- DESCRIPTION                                       -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:id="@+id/txtProgramDescription"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="8dp"
+
+            android:text="60 days extreme workout plan"
+
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+
+            android:maxLines="2"
+            android:ellipsize="end"/>
+
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

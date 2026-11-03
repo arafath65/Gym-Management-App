@@ -3,9 +3,11 @@ package com.arafath65.gymManagement.service;
 import com.arafath65.gymManagement.entity.Branch;
 import com.arafath65.gymManagement.entity.Member;
 import com.arafath65.gymManagement.entity.Program;
+import com.arafath65.gymManagement.entity.ProgramBranch;
 import com.arafath65.gymManagement.entity.ProgramEnrollment;
 import com.arafath65.gymManagement.repository.BranchRepository;
 import com.arafath65.gymManagement.repository.MemberRepository;
+import com.arafath65.gymManagement.repository.ProgramBranchRepository;
 import com.arafath65.gymManagement.repository.ProgramEnrollmentRepository;
 import com.arafath65.gymManagement.repository.ProgramRepository;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,9 @@ public class ProgramEnrollmentService {
     private final ProgramRepository
             programRepository;
 
+    private final ProgramBranchRepository
+            programBranchRepository;
+
     private final MemberRepository
             memberRepository;
 
@@ -40,6 +45,7 @@ public class ProgramEnrollmentService {
     public ProgramEnrollmentService(
             ProgramEnrollmentRepository programEnrollmentRepository,
             ProgramRepository programRepository,
+            ProgramBranchRepository programBranchRepository,
             MemberRepository memberRepository,
             BranchRepository branchRepository) {
 
@@ -48,6 +54,9 @@ public class ProgramEnrollmentService {
 
         this.programRepository =
                 programRepository;
+
+        this.programBranchRepository =
+                programBranchRepository;
 
         this.memberRepository =
                 memberRepository;
@@ -227,16 +236,74 @@ public class ProgramEnrollmentService {
 
 
         // -------------------------------------------------
-        // PROGRAM BRANCH RULE
+        // PROGRAM â†’ BRANCH ASSIGNMENT
         // -------------------------------------------------
 
-        if (program.getBranch() != null
-                && program.getBranch()
+        ProgramBranch programBranch =
+                programBranchRepository
+                        .findByTenant_TenantIdAndProgram_ProgramIdAndBranch_BranchId(
+                                tenantId,
+                                program.getProgramId(),
+                                branch.getBranchId()
+                        )
+                        .orElseThrow(
+                                () -> new IllegalArgumentException(
+                                        "Program is not available for this branch."
+                                )
+                        );
+
+
+        if (!Boolean.TRUE.equals(
+                programBranch.getStatus()
+        )) {
+
+            throw new IllegalArgumentException(
+                    "Program is inactive for this branch."
+            );
+        }
+
+
+        // -------------------------------------------------
+        // VERIFY PROGRAM BRANCH TENANT
+        // -------------------------------------------------
+
+        if (programBranch.getTenant() == null
+                || programBranch.getTenant()
+                .getTenantId()
+                != tenantId) {
+
+            throw new IllegalArgumentException(
+                    "Program branch assignment does not belong to this tenant."
+            );
+        }
+
+
+        // -------------------------------------------------
+        // VERIFY ASSIGNMENT PROGRAM
+        // -------------------------------------------------
+
+        if (programBranch.getProgram() == null
+                || programBranch.getProgram()
+                .getProgramId()
+                != program.getProgramId()) {
+
+            throw new IllegalArgumentException(
+                    "Invalid program branch assignment."
+            );
+        }
+
+
+        // -------------------------------------------------
+        // VERIFY ASSIGNMENT BRANCH
+        // -------------------------------------------------
+
+        if (programBranch.getBranch() == null
+                || programBranch.getBranch()
                 .getBranchId()
                 != branch.getBranchId()) {
 
             throw new IllegalArgumentException(
-                    "Program is not available for this branch."
+                    "Invalid program branch assignment."
             );
         }
 
@@ -304,8 +371,9 @@ public class ProgramEnrollmentService {
          * Day 1 = 16 Aug
          * Day 60 = 14 Oct
          *
-         * Therefore end date is:
+         * Therefore:
          *
+         * endDate =
          * startDate + durationDays - 1
          */
 
@@ -324,9 +392,18 @@ public class ProgramEnrollmentService {
         // PROGRAM FEE SNAPSHOT
         // -------------------------------------------------
 
+        /*
+         * IMPORTANT:
+         *
+         * Program no longer contains fee.
+         *
+         * Fee is branch-specific and comes from
+         * ProgramBranch.
+         */
+
         BigDecimal programFee =
                 safe(
-                        program.getFee()
+                        programBranch.getFee()
                 );
 
 
@@ -426,21 +503,10 @@ public class ProgramEnrollmentService {
 
 
         // -------------------------------------------------
-        // INSTALLMENT RULE
+        // PAYMENT IS OPTIONAL DURING ENROLLMENT
         // -------------------------------------------------
-
-        if (enrollment.getPaymentType()
-                == ProgramEnrollment.PaymentType.INSTALLMENT) {
-
-            if (initialPayment.compareTo(
-                    BigDecimal.ZERO
-            ) <= 0) {
-
-                throw new IllegalArgumentException(
-                        "Initial installment payment must be greater than zero."
-                );
-            }
-        }
+        // An enrollment may be assigned with zero paid amount.
+        // Actual payments are recorded later through ProgramPaymentService.
 
 
         enrollment.setPaidAmount(
@@ -677,11 +743,19 @@ public class ProgramEnrollmentService {
                         );
 
 
+        // -------------------------------------------------
+        // TOTAL
+        // -------------------------------------------------
+
         BigDecimal total =
                 safe(
                         enrollment.getTotalAmount()
                 );
 
+
+        // -------------------------------------------------
+        // NEW PAID AMOUNT
+        // -------------------------------------------------
 
         BigDecimal paid =
                 safe(
@@ -697,6 +771,10 @@ public class ProgramEnrollmentService {
         }
 
 
+        // -------------------------------------------------
+        // OVERPAYMENT
+        // -------------------------------------------------
+
         if (paid.compareTo(
                 total
         ) > 0) {
@@ -707,10 +785,18 @@ public class ProgramEnrollmentService {
         }
 
 
+        // -------------------------------------------------
+        // UPDATE PAID
+        // -------------------------------------------------
+
         enrollment.setPaidAmount(
                 paid
         );
 
+
+        // -------------------------------------------------
+        // UPDATE BALANCE
+        // -------------------------------------------------
 
         enrollment.setBalanceAmount(
                 total.subtract(
@@ -719,13 +805,16 @@ public class ProgramEnrollmentService {
         );
 
 
-        if (enrollment.getBalanceAmount()
-                .compareTo(BigDecimal.ZERO) == 0) {
-
-            enrollment.setEnrollmentState(
-                    ProgramEnrollment.EnrollmentState.COMPLETED
-            );
-        }
+        /*
+         * IMPORTANT:
+         *
+         * Zero balance does NOT automatically mean
+         * the program is completed.
+         *
+         * The enrollment remains ACTIVE until the
+         * program period is completed or an authorized
+         * operation changes the state.
+         */
 
 
         return programEnrollmentRepository.save(
@@ -839,3 +928,4 @@ public class ProgramEnrollmentService {
                 : value;
     }
 }
+

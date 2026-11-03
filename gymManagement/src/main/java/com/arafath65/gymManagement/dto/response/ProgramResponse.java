@@ -1,7 +1,7 @@
 package com.arafath65.gymManagement.dto.response;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class ProgramResponse {
 
@@ -9,21 +9,30 @@ public class ProgramResponse {
 
     private Integer tenantId;
 
-    private Integer branchId;
-    private String branchName;
-
     private String programCode;
+
     private String programName;
+
     private String description;
 
     private Integer durationDays;
 
-    private BigDecimal fee;
-
     private Boolean status;
 
+    private List<ProgramBranchResponse>
+            branchAssignments;
+
     private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
+
+
+    // =====================================================
+    // CONSTRUCTOR
+    // =====================================================
+
+    public ProgramResponse() {
+    }
 
 
     // =====================================================
@@ -51,30 +60,6 @@ public class ProgramResponse {
 
         this.tenantId =
                 tenantId;
-    }
-
-
-    public Integer getBranchId() {
-        return branchId;
-    }
-
-    public void setBranchId(
-            Integer branchId) {
-
-        this.branchId =
-                branchId;
-    }
-
-
-    public String getBranchName() {
-        return branchName;
-    }
-
-    public void setBranchName(
-            String branchName) {
-
-        this.branchName =
-                branchName;
     }
 
 
@@ -126,18 +111,6 @@ public class ProgramResponse {
     }
 
 
-    public BigDecimal getFee() {
-        return fee;
-    }
-
-    public void setFee(
-            BigDecimal fee) {
-
-        this.fee =
-                fee;
-    }
-
-
     public Boolean getStatus() {
         return status;
     }
@@ -147,6 +120,21 @@ public class ProgramResponse {
 
         this.status =
                 status;
+    }
+
+
+    public List<ProgramBranchResponse>
+    getBranchAssignments() {
+
+        return branchAssignments;
+    }
+
+    public void setBranchAssignments(
+            List<ProgramBranchResponse>
+                    branchAssignments) {
+
+        this.branchAssignments =
+                branchAssignments;
     }
 
 

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:orientation="vertical"
+    android:padding="18dp">
+
+
+    <!-- ================================================= -->
+    <!-- HEADER                                            -->
+    <!-- ================================================= -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical">
+
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+
+            android:layout_weight="1"
+
+            android:orientation="vertical">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="Programs"
+
+                android:textColor="@color/text_primary"
+                android:textSize="25sp"
+                android:textStyle="bold"/>
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="4dp"
+
+                android:text="Manage gym programs and special training packages."
+
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"/>
+
+        </LinearLayout>
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddProgram"
+
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+
+            android:text="Add Program"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+
+            app:backgroundTint="@color/green_primary"/>
+
+    </LinearLayout>
+
+
+    <!-- ================================================= -->
+    <!-- SEARCH + STATUS FILTER -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutSearchProgram"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="10dp"
+            android:hint="Search program"
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtSearchProgram"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:singleLine="true"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/hint"
+                android:background="@null" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutProgramStatus"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="138dp"
+            android:layout_height="wrap_content"
+            android:hint="Status"
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <AutoCompleteTextView
+                android:id="@+id/txtProgramStatusFilter"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:inputType="none"
+                android:focusable="true"
+                android:clickable="true"
+                android:text="Active"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/hint"
+                android:paddingStart="12dp"
+                android:paddingEnd="8dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txtProgramCount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Total Programs: 0"
+        android:textColor="@color/green_light"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+
+    <!-- PROGRAM LIST                                      -->
+    <!-- ================================================= -->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerPrograms"
+
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+
+        android:layout_weight="1"
+
+        android:layout_marginTop="15dp"
+
+        android:clipToPadding="false"
+
+        android:paddingBottom="15dp"/>
+
+
+</LinearLayout>

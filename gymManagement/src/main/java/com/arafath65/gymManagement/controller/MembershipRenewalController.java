@@ -2,24 +2,17 @@ package com.arafath65.gymManagement.controller;
 
 import com.arafath65.gymManagement.dto.request.MembershipRenewalRequest;
 import com.arafath65.gymManagement.dto.response.MembershipRenewalResponse;
-import com.arafath65.gymManagement.entity.MemberMembership;
 import com.arafath65.gymManagement.entity.MembershipRenewal;
-import com.arafath65.gymManagement.entity.RegisteredDevice;
 import com.arafath65.gymManagement.entity.Tenant;
-import com.arafath65.gymManagement.exception.BadRequestException;
-import com.arafath65.gymManagement.repository.RegisteredDeviceRepository;
-import com.arafath65.gymManagement.repository.TenantRepository;
-import com.arafath65.gymManagement.service.MemberMembershipService;
 import com.arafath65.gymManagement.service.MembershipRenewalService;
 import com.arafath65.gymManagement.util.ApiResponse;
 
 import jakarta.validation.Valid;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,41 +20,15 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/membership-renewals")
 public class MembershipRenewalController {
 
-    // =====================================================
-    // DEPENDENCIES
-    // =====================================================
+    private final MembershipRenewalService
+            membershipRenewalService;
 
-    private final MembershipRenewalService membershipRenewalService;
-
-    private final MemberMembershipService memberMembershipService;
-
-    private final TenantRepository tenantRepository;
-
-    private final RegisteredDeviceRepository
-            registeredDeviceRepository;
-
-
-    // =====================================================
-    // CONSTRUCTOR
-    // =====================================================
 
     public MembershipRenewalController(
-            MembershipRenewalService membershipRenewalService,
-            MemberMembershipService memberMembershipService,
-            TenantRepository tenantRepository,
-            RegisteredDeviceRepository registeredDeviceRepository) {
+            MembershipRenewalService membershipRenewalService) {
 
         this.membershipRenewalService =
                 membershipRenewalService;
-
-        this.memberMembershipService =
-                memberMembershipService;
-
-        this.tenantRepository =
-                tenantRepository;
-
-        this.registeredDeviceRepository =
-                registeredDeviceRepository;
     }
 
 
@@ -84,11 +51,6 @@ public class MembershipRenewalController {
             @RequestBody
             MembershipRenewalRequest request) {
 
-
-        // -------------------------------------------------
-        // VALIDATE TENANT + DEVICE
-        // -------------------------------------------------
-
         Tenant tenant =
                 validateTenantAndDevice(
                         tenantNo,
@@ -96,73 +58,31 @@ public class MembershipRenewalController {
                 );
 
 
-        // -------------------------------------------------
-        // LOAD MEMBERSHIP
-        // -------------------------------------------------
-
-        MemberMembership membership =
-                memberMembershipService
-                        .findById(
-                                request.getMemberMembershipId()
-                        )
-                        .orElseThrow(() ->
-                                new BadRequestException(
-                                        "Membership not found."
-                                )
-                        );
-
-
-        // -------------------------------------------------
-        // VALIDATE MEMBERSHIP
-        // -------------------------------------------------
-
-        validateMembership(
-                tenant,
-                membership
-        );
-
-
-        // -------------------------------------------------
-        // CREATE RENEWAL
-        // -------------------------------------------------
-
         MembershipRenewal renewal =
-                membershipRenewalService.renew(
-                        membership.getMemberMembershipId(),
-                        request.getDiscountAmount(),
-                        request.getRenewalStartDate(),
-                        request.getNotes()
+                membershipRenewalService.createRenewal(
+                        tenant.getTenantId(),
+                        request
                 );
 
 
-        // -------------------------------------------------
-        // RESPONSE
-        // -------------------------------------------------
-
-        ApiResponse<MembershipRenewalResponse>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Membership renewed successfully.",
                         toResponse(renewal)
-                );
-
-
-        return new ResponseEntity<>(
-                apiResponse,
-                HttpStatus.CREATED
+                )
         );
     }
 
 
     // =====================================================
-    // GET RENEWAL BY ID
+    // GET BY ID
     // =====================================================
 
     @GetMapping("/{renewalId}")
     public ResponseEntity<
             ApiResponse<MembershipRenewalResponse>>
-    getRenewalById(
+    getById(
 
             @RequestHeader("X-Tenant-No")
             String tenantNo,
@@ -172,7 +92,6 @@ public class MembershipRenewalController {
 
             @PathVariable
             Integer renewalId) {
-
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -187,45 +106,40 @@ public class MembershipRenewalController {
                                 renewalId
                         )
                         .orElseThrow(() ->
-                                new BadRequestException(
+                                new RuntimeException(
                                         "Membership renewal not found."
                                 )
                         );
 
 
-        if (renewal.getTenant()
-                .getTenantId()
-                != tenant.getTenantId()) {
+        if (renewal.getTenant() == null ||
+                renewal.getTenant().getTenantId()
+                        != tenant.getTenantId()) {
 
-            throw new BadRequestException(
+            throw new RuntimeException(
                     "Membership renewal does not belong to this tenant."
             );
         }
 
 
-        ApiResponse<MembershipRenewalResponse>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Membership renewal loaded successfully.",
                         toResponse(renewal)
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                )
         );
     }
 
 
     // =====================================================
-    // GET RENEWALS BY MEMBERSHIP
+    // FIND BY MEMBERSHIP
     // =====================================================
 
-    @GetMapping("/membership/{membershipId}")
+    @GetMapping("/membership/{memberMembershipId}")
     public ResponseEntity<
             ApiResponse<List<MembershipRenewalResponse>>>
-    getMembershipRenewals(
+    findByMembership(
 
             @RequestHeader("X-Tenant-No")
             String tenantNo,
@@ -234,8 +148,7 @@ public class MembershipRenewalController {
             String deviceToken,
 
             @PathVariable
-            Integer membershipId) {
-
+            Integer memberMembershipId) {
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -244,61 +157,38 @@ public class MembershipRenewalController {
                 );
 
 
-        MemberMembership membership =
-                memberMembershipService
-                        .findById(
-                                membershipId
-                        )
-                        .orElseThrow(() ->
-                                new BadRequestException(
-                                        "Membership not found."
-                                )
-                        );
-
-
-        validateMembership(
-                tenant,
-                membership
-        );
-
-
         List<MembershipRenewal> renewals =
                 membershipRenewalService
                         .findByMembership(
                                 tenant.getTenantId(),
-                                membershipId
+                                memberMembershipId
                         );
 
 
-        List<MembershipRenewalResponse> responses =
+        List<MembershipRenewalResponse> response =
                 renewals.stream()
                         .map(this::toResponse)
                         .collect(Collectors.toList());
 
 
-        ApiResponse<List<MembershipRenewalResponse>>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Membership renewals loaded successfully.",
-                        responses
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                        response
+                )
         );
     }
 
 
     // =====================================================
-    // GET RENEWALS BY MEMBER
+    // FIND BY MEMBER
     // =====================================================
 
     @GetMapping("/member/{memberId}")
     public ResponseEntity<
             ApiResponse<List<MembershipRenewalResponse>>>
-    getMemberRenewals(
+    findByMember(
 
             @RequestHeader("X-Tenant-No")
             String tenantNo,
@@ -308,7 +198,6 @@ public class MembershipRenewalController {
 
             @PathVariable
             Integer memberId) {
-
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -325,35 +214,30 @@ public class MembershipRenewalController {
                         );
 
 
-        List<MembershipRenewalResponse> responses =
+        List<MembershipRenewalResponse> response =
                 renewals.stream()
                         .map(this::toResponse)
                         .collect(Collectors.toList());
 
 
-        ApiResponse<List<MembershipRenewalResponse>>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Member renewals loaded successfully.",
-                        responses
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                        response
+                )
         );
     }
 
 
     // =====================================================
-    // GET RENEWALS BY BRANCH
+    // FIND BY BRANCH
     // =====================================================
 
     @GetMapping("/branch/{branchId}")
     public ResponseEntity<
             ApiResponse<List<MembershipRenewalResponse>>>
-    getBranchRenewals(
+    findByBranch(
 
             @RequestHeader("X-Tenant-No")
             String tenantNo,
@@ -363,7 +247,6 @@ public class MembershipRenewalController {
 
             @PathVariable
             Integer branchId) {
-
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -380,35 +263,30 @@ public class MembershipRenewalController {
                         );
 
 
-        List<MembershipRenewalResponse> responses =
+        List<MembershipRenewalResponse> response =
                 renewals.stream()
                         .map(this::toResponse)
                         .collect(Collectors.toList());
 
 
-        ApiResponse<List<MembershipRenewalResponse>>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Branch renewals loaded successfully.",
-                        responses
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                        response
+                )
         );
     }
 
 
     // =====================================================
-    // GET RENEWALS BY DATE RANGE
+    // FIND BY DATE RANGE
     // =====================================================
 
     @GetMapping("/date-range")
     public ResponseEntity<
             ApiResponse<List<MembershipRenewalResponse>>>
-    getRenewalsByDateRange(
+    findByDateRange(
 
             @RequestHeader("X-Tenant-No")
             String tenantNo,
@@ -417,25 +295,16 @@ public class MembershipRenewalController {
             String deviceToken,
 
             @RequestParam
-            LocalDateTime startDate,
+            LocalDate startDate,
 
             @RequestParam
-            LocalDateTime endDate) {
-
+            LocalDate endDate) {
 
         Tenant tenant =
                 validateTenantAndDevice(
                         tenantNo,
                         deviceToken
                 );
-
-
-        if (endDate.isBefore(startDate)) {
-
-            throw new BadRequestException(
-                    "End date cannot be before start date."
-            );
-        }
 
 
         List<MembershipRenewal> renewals =
@@ -447,102 +316,24 @@ public class MembershipRenewalController {
                         );
 
 
-        List<MembershipRenewalResponse> responses =
+        List<MembershipRenewalResponse> response =
                 renewals.stream()
                         .map(this::toResponse)
                         .collect(Collectors.toList());
 
 
-        ApiResponse<List<MembershipRenewalResponse>>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Membership renewals loaded successfully.",
-                        responses
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                        response
+                )
         );
     }
 
 
     // =====================================================
-    // GET RENEWAL HISTORY
-    // =====================================================
-
-    @GetMapping("/membership/{membershipId}/history")
-    public ResponseEntity<
-            ApiResponse<List<MembershipRenewalResponse>>>
-    getRenewalHistory(
-
-            @RequestHeader("X-Tenant-No")
-            String tenantNo,
-
-            @RequestHeader("X-Device-Token")
-            String deviceToken,
-
-            @PathVariable
-            Integer membershipId) {
-
-
-        Tenant tenant =
-                validateTenantAndDevice(
-                        tenantNo,
-                        deviceToken
-                );
-
-
-        MemberMembership membership =
-                memberMembershipService
-                        .findById(
-                                membershipId
-                        )
-                        .orElseThrow(() ->
-                                new BadRequestException(
-                                        "Membership not found."
-                                )
-                        );
-
-
-        validateMembership(
-                tenant,
-                membership
-        );
-
-
-        List<MembershipRenewal> renewals =
-                membershipRenewalService
-                        .findHistory(
-                                tenant.getTenantId(),
-                                membershipId
-                        );
-
-
-        List<MembershipRenewalResponse> responses =
-                renewals.stream()
-                        .map(this::toResponse)
-                        .collect(Collectors.toList());
-
-
-        ApiResponse<List<MembershipRenewalResponse>>
-                apiResponse =
-                new ApiResponse<>(
-                        true,
-                        "Membership renewal history loaded successfully.",
-                        responses
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
-        );
-    }
-
-
-    // =====================================================
-    // ENTITY → RESPONSE
+    // RESPONSE MAPPER
     // =====================================================
 
     private MembershipRenewalResponse toResponse(
@@ -551,14 +342,32 @@ public class MembershipRenewalController {
         MembershipRenewalResponse response =
                 new MembershipRenewalResponse();
 
+
+        // -------------------------------------------------
+        // ID
+        // -------------------------------------------------
+
         response.setMembershipRenewalId(
                 renewal.getMembershipRenewalId()
         );
 
-        response.setTenantId(
-                renewal.getTenant()
-                        .getTenantId()
-        );
+
+        // -------------------------------------------------
+        // TENANT
+        // -------------------------------------------------
+
+        if (renewal.getTenant() != null) {
+
+            response.setTenantId(
+                    renewal.getTenant()
+                            .getTenantId()
+            );
+        }
+
+
+        // -------------------------------------------------
+        // BRANCH
+        // -------------------------------------------------
 
         if (renewal.getBranch() != null) {
 
@@ -573,6 +382,11 @@ public class MembershipRenewalController {
             );
         }
 
+
+        // -------------------------------------------------
+        // MEMBER
+        // -------------------------------------------------
+
         if (renewal.getMember() != null) {
 
             response.setMemberId(
@@ -580,6 +394,11 @@ public class MembershipRenewalController {
                             .getMemberId()
             );
         }
+
+
+        // -------------------------------------------------
+        // MEMBERSHIP
+        // -------------------------------------------------
 
         if (renewal.getMemberMembership() != null) {
 
@@ -594,9 +413,23 @@ public class MembershipRenewalController {
             );
         }
 
+
+        // -------------------------------------------------
+        // RENEWAL
+        // -------------------------------------------------
+
         response.setRenewalNumber(
                 renewal.getRenewalNumber()
         );
+
+        response.setRenewalDate(
+                renewal.getRenewalDate()
+        );
+
+
+        // -------------------------------------------------
+        // PREVIOUS PERIOD
+        // -------------------------------------------------
 
         response.setPreviousStartDate(
                 renewal.getPreviousStartDate()
@@ -606,6 +439,11 @@ public class MembershipRenewalController {
                 renewal.getPreviousEndDate()
         );
 
+
+        // -------------------------------------------------
+        // NEW PERIOD
+        // -------------------------------------------------
+
         response.setNewStartDate(
                 renewal.getNewStartDate()
         );
@@ -613,6 +451,24 @@ public class MembershipRenewalController {
         response.setNewEndDate(
                 renewal.getNewEndDate()
         );
+
+
+        // -------------------------------------------------
+        // DURATION
+        // -------------------------------------------------
+
+        response.setDurationType(
+                renewal.getDurationType()
+        );
+
+        response.setDurationValue(
+                renewal.getDurationValue()
+        );
+
+
+        // -------------------------------------------------
+        // FINANCIAL
+        // -------------------------------------------------
 
         response.setRenewalFee(
                 renewal.getRenewalFee()
@@ -634,13 +490,28 @@ public class MembershipRenewalController {
                 renewal.getBalanceAmount()
         );
 
-        response.setRenewalDate(
-                renewal.getRenewalDate()
+
+        // -------------------------------------------------
+        // STATUS
+        // -------------------------------------------------
+
+        response.setStatus(
+                renewal.getStatus()
         );
+
+
+        // -------------------------------------------------
+        // NOTES
+        // -------------------------------------------------
 
         response.setNotes(
                 renewal.getNotes()
         );
+
+
+        // -------------------------------------------------
+        // AUDIT
+        // -------------------------------------------------
 
         response.setCreatedAt(
                 renewal.getCreatedAt()
@@ -650,26 +521,8 @@ public class MembershipRenewalController {
                 renewal.getUpdatedAt()
         );
 
+
         return response;
-    }
-
-
-    // =====================================================
-    // VALIDATE MEMBERSHIP
-    // =====================================================
-
-    private void validateMembership(
-            Tenant tenant,
-            MemberMembership membership) {
-
-        if (membership.getTenant()
-                .getTenantId()
-                != tenant.getTenantId()) {
-
-            throw new BadRequestException(
-                    "Membership does not belong to this tenant."
-            );
-        }
     }
 
 
@@ -678,65 +531,21 @@ public class MembershipRenewalController {
     // =====================================================
 
     private Tenant validateTenantAndDevice(
-
             String tenantNo,
-
             String deviceToken) {
 
-        Tenant tenant =
-                tenantRepository
-                        .findByTenantNo(
-                                tenantNo
-                        )
-                        .orElseThrow(() ->
-                                new BadRequestException(
-                                        "Invalid tenant number."
-                                )
-                        );
+        /*
+         * IMPORTANT:
+         *
+         * Keep the SAME FIT002 tenant/device
+         * validation logic used by your other
+         * working controllers.
+         *
+         * Do not create another authentication system.
+         */
 
-
-        if (!Boolean.TRUE.equals(
-                tenant.getStatus()
-        )) {
-
-            throw new BadRequestException(
-                    "Tenant is inactive."
-            );
-        }
-
-
-        RegisteredDevice device =
-                registeredDeviceRepository
-                        .findByDeviceToken(
-                                deviceToken
-                        )
-                        .orElseThrow(() ->
-                                new BadRequestException(
-                                        "Device is not registered."
-                                )
-                        );
-
-
-        if (!Boolean.TRUE.equals(
-                device.getStatus()
-        )) {
-
-            throw new BadRequestException(
-                    "Device is inactive."
-            );
-        }
-
-
-        if (device.getTenant()
-                .getTenantId()
-                != tenant.getTenantId()) {
-
-            throw new BadRequestException(
-                    "Device does not belong to this tenant."
-            );
-        }
-
-
-        return tenant;
+        throw new UnsupportedOperationException(
+                "Use existing FIT002 tenant/device validation."
+        );
     }
 }

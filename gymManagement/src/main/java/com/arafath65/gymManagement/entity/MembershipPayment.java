@@ -3,33 +3,57 @@ package com.arafath65.gymManagement.entity;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(
         name = "membership_payments",
         indexes = {
+
                 @Index(
-                        name = "idx_membership_payment_membership",
-                        columnList = "member_membership_id"
+                        name = "idx_membership_payment_tenant",
+                        columnList = "tenant_id"
                 ),
-                @Index(
-                        name = "idx_membership_payment_member",
-                        columnList = "member_id"
-                ),
+
                 @Index(
                         name = "idx_membership_payment_branch",
                         columnList = "branch_id"
                 ),
+
+                @Index(
+                        name = "idx_membership_payment_membership",
+                        columnList = "member_membership_id"
+                ),
+
                 @Index(
                         name = "idx_membership_payment_date",
                         columnList = "payment_date"
+                ),
+
+                @Index(
+                        name = "idx_membership_payment_status",
+                        columnList = "status"
+                )
+        },
+        uniqueConstraints = {
+
+                @UniqueConstraint(
+                        name = "uk_membership_payment_number",
+                        columnNames = {
+                                "tenant_id",
+                                "payment_number"
+                        }
                 )
         }
 )
 public class MembershipPayment {
 
+    // =====================================================
     // ID
+    // =====================================================
 
     @Id
     @GeneratedValue(
@@ -41,7 +65,9 @@ public class MembershipPayment {
     private Integer membershipPaymentId;
 
 
+    // =====================================================
     // TENANT
+    // =====================================================
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -51,7 +77,9 @@ public class MembershipPayment {
     private Tenant tenant;
 
 
+    // =====================================================
     // BRANCH
+    // =====================================================
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -61,17 +89,9 @@ public class MembershipPayment {
     private Branch branch;
 
 
-    // MEMBER
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "member_id",
-            nullable = false
-    )
-    private Member member;
-
-
-    // MEMBERSHIP
+    // =====================================================
+    // MEMBER MEMBERSHIP
+    // =====================================================
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -80,7 +100,9 @@ public class MembershipPayment {
     )
     private MemberMembership memberMembership;
 
-    // RENEWAL
+    // =====================================================
+// MEMBERSHIP RENEWAL
+// =====================================================
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -88,8 +110,20 @@ public class MembershipPayment {
     )
     private MembershipRenewal membershipRenewal;
 
+    // =====================================================
+// MEMBERSHIP BILLING CYCLE
+// =====================================================
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "membership_billing_cycle_id"
+    )
+    private MembershipBillingCycle membershipBillingCycle;
+
+
+    // =====================================================
     // PAYMENT NUMBER
+    // =====================================================
 
     @Column(
             name = "payment_number",
@@ -99,34 +133,34 @@ public class MembershipPayment {
     private String paymentNumber;
 
 
-    // PAYMENT
-
-    @Column(
-            name = "amount",
-            nullable = false,
-            precision = 12,
-            scale = 2
-    )
-    private BigDecimal amount = BigDecimal.ZERO;
-
-
-    @Enumerated(EnumType.STRING)
-    @Column(
-            name = "payment_method",
-            nullable = false,
-            length = 20
-    )
-    private PaymentMethod paymentMethod;
-
+    // =====================================================
+    // PAYMENT DATE
+    // =====================================================
 
     @Column(
             name = "payment_date",
             nullable = false
     )
-    private LocalDateTime paymentDate;
+    private LocalDate paymentDate;
 
 
+    // =====================================================
+    // TOTAL AMOUNT
+    // =====================================================
+
+    @Column(
+            name = "total_amount",
+            nullable = false,
+            precision = 12,
+            scale = 2
+    )
+    private BigDecimal totalAmount =
+            BigDecimal.ZERO;
+
+
+    // =====================================================
     // REFERENCE
+    // =====================================================
 
     @Column(
             name = "reference_number",
@@ -135,7 +169,9 @@ public class MembershipPayment {
     private String referenceNumber;
 
 
+    // =====================================================
     // NOTES
+    // =====================================================
 
     @Column(
             name = "notes",
@@ -144,7 +180,34 @@ public class MembershipPayment {
     private String notes;
 
 
+    // =====================================================
+    // STATUS
+    // =====================================================
+
+    @Column(
+            name = "status",
+            nullable = false
+    )
+    private Boolean status = true;
+
+
+    // =====================================================
+    // PAYMENT DETAILS
+    // =====================================================
+
+    @OneToMany(
+            mappedBy = "membershipPayment",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<MembershipPaymentDetail>
+            paymentDetails =
+            new ArrayList<>();
+
+
+    // =====================================================
     // AUDIT
+    // =====================================================
 
     @Column(
             name = "created_at",
@@ -160,15 +223,15 @@ public class MembershipPayment {
     private LocalDateTime updatedAt;
 
 
+    // =====================================================
+    // LIFECYCLE
+    // =====================================================
+
     @PrePersist
     protected void onCreate() {
 
         LocalDateTime now =
                 LocalDateTime.now();
-
-        if (paymentDate == null) {
-            paymentDate = now;
-        }
 
         createdAt = now;
         updatedAt = now;
@@ -183,7 +246,9 @@ public class MembershipPayment {
     }
 
 
+    // =====================================================
     // GETTERS / SETTERS
+    // =====================================================
 
     public Integer getMembershipPaymentId() {
         return membershipPaymentId;
@@ -191,33 +256,33 @@ public class MembershipPayment {
 
     public void setMembershipPaymentId(
             Integer membershipPaymentId) {
+
         this.membershipPaymentId =
                 membershipPaymentId;
     }
+
 
     public Tenant getTenant() {
         return tenant;
     }
 
-    public void setTenant(Tenant tenant) {
+    public void setTenant(
+            Tenant tenant) {
+
         this.tenant = tenant;
     }
+
 
     public Branch getBranch() {
         return branch;
     }
 
-    public void setBranch(Branch branch) {
+    public void setBranch(
+            Branch branch) {
+
         this.branch = branch;
     }
 
-    public Member getMember() {
-        return member;
-    }
-
-    public void setMember(Member member) {
-        this.member = member;
-    }
 
     public MemberMembership getMemberMembership() {
         return memberMembership;
@@ -225,9 +290,33 @@ public class MembershipPayment {
 
     public void setMemberMembership(
             MemberMembership memberMembership) {
+
         this.memberMembership =
                 memberMembership;
     }
+
+    public MembershipRenewal getMembershipRenewal() {
+        return membershipRenewal;
+    }
+
+    public void setMembershipRenewal(
+            MembershipRenewal membershipRenewal) {
+
+        this.membershipRenewal =
+                membershipRenewal;
+    }
+
+    public MembershipBillingCycle getMembershipBillingCycle() {
+        return membershipBillingCycle;
+    }
+
+    public void setMembershipBillingCycle(
+            MembershipBillingCycle membershipBillingCycle) {
+
+        this.membershipBillingCycle =
+                membershipBillingCycle;
+    }
+
 
     public String getPaymentNumber() {
         return paymentNumber;
@@ -235,37 +324,35 @@ public class MembershipPayment {
 
     public void setPaymentNumber(
             String paymentNumber) {
+
         this.paymentNumber =
                 paymentNumber;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
-    }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public PaymentMethod getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(
-            PaymentMethod paymentMethod) {
-        this.paymentMethod =
-                paymentMethod;
-    }
-
-    public LocalDateTime getPaymentDate() {
+    public LocalDate getPaymentDate() {
         return paymentDate;
     }
 
     public void setPaymentDate(
-            LocalDateTime paymentDate) {
+            LocalDate paymentDate) {
+
         this.paymentDate =
                 paymentDate;
     }
+
+
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(
+            BigDecimal totalAmount) {
+
+        this.totalAmount =
+                totalAmount;
+    }
+
 
     public String getReferenceNumber() {
         return referenceNumber;
@@ -273,17 +360,48 @@ public class MembershipPayment {
 
     public void setReferenceNumber(
             String referenceNumber) {
+
         this.referenceNumber =
                 referenceNumber;
     }
+
 
     public String getNotes() {
         return notes;
     }
 
-    public void setNotes(String notes) {
+    public void setNotes(
+            String notes) {
+
         this.notes = notes;
     }
+
+
+    public Boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(
+            Boolean status) {
+
+        this.status = status;
+    }
+
+
+    public List<MembershipPaymentDetail>
+    getPaymentDetails() {
+
+        return paymentDetails;
+    }
+
+    public void setPaymentDetails(
+            List<MembershipPaymentDetail>
+                    paymentDetails) {
+
+        this.paymentDetails =
+                paymentDetails;
+    }
+
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
@@ -293,24 +411,41 @@ public class MembershipPayment {
         return updatedAt;
     }
 
-    public MembershipRenewal getMembershipRenewal() {
-        return membershipRenewal;
+
+    // =====================================================
+    // HELPER
+    // =====================================================
+
+    public void addPaymentDetail(
+            MembershipPaymentDetail detail) {
+
+        paymentDetails.add(detail);
+
+        detail.setMembershipPayment(this);
     }
 
-    public void setMembershipRenewal(
-            MembershipRenewal membershipRenewal) {
-        this.membershipRenewal =
-                membershipRenewal;
+
+    public void removePaymentDetail(
+            MembershipPaymentDetail detail) {
+
+        paymentDetails.remove(detail);
+
+        detail.setMembershipPayment(null);
     }
 
 
+    // =====================================================
     // ENUM
+    // =====================================================
 
     public enum PaymentMethod {
 
         CASH,
+
         CARD,
-        CHEQUE,
-        ONLINE_TRANSFER
+
+        BANK_TRANSFER,
+
+        CHEQUE
     }
 }

@@ -1,114 +1,83 @@
 package com.arafath65.gymManagement.dto.request;
 
-import com.arafath65.gymManagement.entity.MembershipPlan;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
 import java.math.BigDecimal;
+import java.util.List;
 
 public class MembershipPlanRequest {
 
-    // PLAN
-
-    @NotBlank(message = "Plan code is required.")
     private String planCode;
-
-    @NotBlank(message = "Plan name is required.")
     private String planName;
-
     private String description;
 
-
-    // BRANCH
-
-    private Integer branchId;
-
-
-    // DURATION
-
-    @NotNull(message = "Duration type is required.")
-    private MembershipPlan.DurationType durationType;
-
-    @Min(
-            value = 1,
-            message = "Duration value must be greater than zero."
-    )
+    private String durationType;
     private Integer durationValue;
 
-
-    // PRICE
-
-    @NotNull(message = "Price is required.")
-    @DecimalMin(
-            value = "0.00",
-            inclusive = true,
-            message = "Price cannot be negative."
-    )
-    private BigDecimal price = BigDecimal.ZERO;
-
-
-    @NotNull(message = "Joining fee is required.")
-    @DecimalMin(
-            value = "0.00",
-            inclusive = true,
-            message = "Joining fee cannot be negative."
-    )
-    private BigDecimal joiningFee = BigDecimal.ZERO;
-
-
-    @NotNull(message = "Renewal fee is required.")
-    @DecimalMin(
-            value = "0.00",
-            inclusive = true,
-            message = "Renewal fee cannot be negative."
-    )
-    private BigDecimal renewalFee = BigDecimal.ZERO;
-
-
-    // BILLING
-
-    @NotNull(message = "Billing type is required.")
-    private MembershipPlan.BillingType billingType =
-            MembershipPlan.BillingType.ONE_TIME;
-
-    private MembershipPlan.BillingFrequency billingFrequency;
-
-    @Min(
-            value = 1,
-            message = "Billing frequency value must be greater than zero."
-    )
+    private String billingType;
+    private String billingFrequency;
     private Integer billingFrequencyValue;
 
+    private String accessBillingMode;
 
-    // FREEZE
+    private Boolean monthlyActivationRequired;
+    private Boolean dailyChargeEnabled;
 
-    private Boolean freezeAllowed = true;
-
-    @Min(
-            value = 0,
-            message = "Maximum freeze days cannot be negative."
-    )
+    private Boolean freezeAllowed;
     private Integer maxFreezeDays;
+    private BigDecimal freezeFee;
 
-    @NotNull(message = "Freeze fee is required.")
-    @DecimalMin(
-            value = "0.00",
-            inclusive = true,
-            message = "Freeze fee cannot be negative."
-    )
-    private BigDecimal freezeFee = BigDecimal.ZERO;
+    private String accessType;
 
 
-    // ACCESS
+    // =====================================================
+    // BRANCH ASSIGNMENT
+    // =====================================================
 
-    @NotNull(message = "Access type is required.")
-    private MembershipPlan.AccessType accessType =
-            MembershipPlan.AccessType.FULL;
+    /*
+     * ALL_BRANCHES
+     * SELECTED_BRANCHES
+     */
+    private String branchMode;
 
 
+    /*
+     * Used when branchMode = ALL_BRANCHES
+     */
+    private BigDecimal defaultPrice;
+    private BigDecimal defaultJoiningFee;
+    private BigDecimal defaultRenewalFee;
+
+
+    /*
+     * Used when branchMode = SELECTED_BRANCHES
+     */
+    private List<MembershipPlanBranchRequest> branches;
+
+
+    // =====================================================
+    // BENEFITS
+    // =====================================================
+
+    /*
+     * Benefits included in this membership plan.
+     *
+     * The benefit records are selected from the
+     * Benefit Master. No benefit names or IDs are
+     * hard-coded in the Membership Plan.
+     */
+    private List<MembershipPlanBenefitRequest> benefits;
+
+
+    // =====================================================
+    // CONSTRUCTOR
+    // =====================================================
+
+    public MembershipPlanRequest() {
+    }
+
+
+    // =====================================================
     // GETTERS / SETTERS
+    // =====================================================
 
     public String getPlanCode() {
         return planCode;
@@ -118,6 +87,7 @@ public class MembershipPlanRequest {
         this.planCode = planCode;
     }
 
+
     public String getPlanName() {
         return planName;
     }
@@ -125,6 +95,7 @@ public class MembershipPlanRequest {
     public void setPlanName(String planName) {
         this.planName = planName;
     }
+
 
     public String getDescription() {
         return description;
@@ -134,22 +105,15 @@ public class MembershipPlanRequest {
         this.description = description;
     }
 
-    public Integer getBranchId() {
-        return branchId;
-    }
 
-    public void setBranchId(Integer branchId) {
-        this.branchId = branchId;
-    }
-
-    public MembershipPlan.DurationType getDurationType() {
+    public String getDurationType() {
         return durationType;
     }
 
-    public void setDurationType(
-            MembershipPlan.DurationType durationType) {
+    public void setDurationType(String durationType) {
         this.durationType = durationType;
     }
+
 
     public Integer getDurationValue() {
         return durationValue;
@@ -159,47 +123,24 @@ public class MembershipPlanRequest {
         this.durationValue = durationValue;
     }
 
-    public BigDecimal getPrice() {
-        return price;
-    }
 
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public BigDecimal getJoiningFee() {
-        return joiningFee;
-    }
-
-    public void setJoiningFee(BigDecimal joiningFee) {
-        this.joiningFee = joiningFee;
-    }
-
-    public BigDecimal getRenewalFee() {
-        return renewalFee;
-    }
-
-    public void setRenewalFee(BigDecimal renewalFee) {
-        this.renewalFee = renewalFee;
-    }
-
-    public MembershipPlan.BillingType getBillingType() {
+    public String getBillingType() {
         return billingType;
     }
 
-    public void setBillingType(
-            MembershipPlan.BillingType billingType) {
+    public void setBillingType(String billingType) {
         this.billingType = billingType;
     }
 
-    public MembershipPlan.BillingFrequency getBillingFrequency() {
+
+    public String getBillingFrequency() {
         return billingFrequency;
     }
 
-    public void setBillingFrequency(
-            MembershipPlan.BillingFrequency billingFrequency) {
+    public void setBillingFrequency(String billingFrequency) {
         this.billingFrequency = billingFrequency;
     }
+
 
     public Integer getBillingFrequencyValue() {
         return billingFrequencyValue;
@@ -207,40 +148,171 @@ public class MembershipPlanRequest {
 
     public void setBillingFrequencyValue(
             Integer billingFrequencyValue) {
+
         this.billingFrequencyValue =
                 billingFrequencyValue;
     }
+
+
+    public String getAccessBillingMode() {
+        return accessBillingMode;
+    }
+
+    public void setAccessBillingMode(
+            String accessBillingMode) {
+
+        this.accessBillingMode =
+                accessBillingMode;
+    }
+
+
+    public Boolean getMonthlyActivationRequired() {
+        return monthlyActivationRequired;
+    }
+
+    public void setMonthlyActivationRequired(
+            Boolean monthlyActivationRequired) {
+
+        this.monthlyActivationRequired =
+                monthlyActivationRequired;
+    }
+
+
+    public Boolean getDailyChargeEnabled() {
+        return dailyChargeEnabled;
+    }
+
+    public void setDailyChargeEnabled(
+            Boolean dailyChargeEnabled) {
+
+        this.dailyChargeEnabled =
+                dailyChargeEnabled;
+    }
+
 
     public Boolean getFreezeAllowed() {
         return freezeAllowed;
     }
 
-    public void setFreezeAllowed(Boolean freezeAllowed) {
-        this.freezeAllowed = freezeAllowed;
+    public void setFreezeAllowed(
+            Boolean freezeAllowed) {
+
+        this.freezeAllowed =
+                freezeAllowed;
     }
+
 
     public Integer getMaxFreezeDays() {
         return maxFreezeDays;
     }
 
-    public void setMaxFreezeDays(Integer maxFreezeDays) {
-        this.maxFreezeDays = maxFreezeDays;
+    public void setMaxFreezeDays(
+            Integer maxFreezeDays) {
+
+        this.maxFreezeDays =
+                maxFreezeDays;
     }
+
 
     public BigDecimal getFreezeFee() {
         return freezeFee;
     }
 
-    public void setFreezeFee(BigDecimal freezeFee) {
-        this.freezeFee = freezeFee;
+    public void setFreezeFee(
+            BigDecimal freezeFee) {
+
+        this.freezeFee =
+                freezeFee;
     }
 
-    public MembershipPlan.AccessType getAccessType() {
+
+    public String getAccessType() {
         return accessType;
     }
 
-    public void setAccessType(
-            MembershipPlan.AccessType accessType) {
+    public void setAccessType(String accessType) {
         this.accessType = accessType;
+    }
+
+
+    // =====================================================
+    // BRANCH MODE
+    // =====================================================
+
+    public String getBranchMode() {
+        return branchMode;
+    }
+
+    public void setBranchMode(String branchMode) {
+        this.branchMode = branchMode;
+    }
+
+
+    // =====================================================
+    // DEFAULT PRICING
+    // =====================================================
+
+    public BigDecimal getDefaultPrice() {
+        return defaultPrice;
+    }
+
+    public void setDefaultPrice(
+            BigDecimal defaultPrice) {
+
+        this.defaultPrice = defaultPrice;
+    }
+
+
+    public BigDecimal getDefaultJoiningFee() {
+        return defaultJoiningFee;
+    }
+
+    public void setDefaultJoiningFee(
+            BigDecimal defaultJoiningFee) {
+
+        this.defaultJoiningFee =
+                defaultJoiningFee;
+    }
+
+
+    public BigDecimal getDefaultRenewalFee() {
+        return defaultRenewalFee;
+    }
+
+    public void setDefaultRenewalFee(
+            BigDecimal defaultRenewalFee) {
+
+        this.defaultRenewalFee =
+                defaultRenewalFee;
+    }
+
+
+    // =====================================================
+    // BRANCHES
+    // =====================================================
+
+    public List<MembershipPlanBranchRequest> getBranches() {
+        return branches;
+    }
+
+    public void setBranches(
+            List<MembershipPlanBranchRequest> branches) {
+
+        this.branches = branches;
+    }
+
+
+    // =====================================================
+    // BENEFITS
+    // =====================================================
+
+    public List<MembershipPlanBenefitRequest> getBenefits() {
+        return benefits;
+    }
+
+    public void setBenefits(
+            List<MembershipPlanBenefitRequest> benefits) {
+
+        this.benefits = benefits;
     }
 }

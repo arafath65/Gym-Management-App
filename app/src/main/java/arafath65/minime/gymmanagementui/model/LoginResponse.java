@@ -22,6 +22,9 @@ public class LoginResponse {
     private String mobile;
     private String email;
 
+    private String sessionToken;
+    private String sessionExpiresAt;
+
 
     public int getUserId() {
         return userId;
@@ -77,5 +80,13 @@ public class LoginResponse {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getSessionToken() {
+        return sessionToken;
+    }
+
+    public String getSessionExpiresAt() {
+        return sessionExpiresAt;
     }
 }

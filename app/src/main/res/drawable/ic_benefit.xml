@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+
+    android:width="24dp"
+    android:height="24dp"
+
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+
+    <!-- ================================================= -->
+    <!-- BENEFIT / GIFT BOX -->
+    <!-- ================================================= -->
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+
+        android:pathData="
+            M4,9
+            L20,9
+            L20,20
+            L4,20
+            Z"/>
+
+
+    <!-- ================================================= -->
+    <!-- TOP LID -->
+    <!-- ================================================= -->
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+
+        android:pathData="
+            M3,6
+            L21,6
+            L21,9
+            L3,9
+            Z"/>
+
+
+    <!-- ================================================= -->
+    <!-- CENTER RIBBON -->
+    <!-- ================================================= -->
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+
+        android:pathData="
+            M12,6
+            L12,20"/>
+
+
+    <!-- ================================================= -->
+    <!-- LEFT RIBBON -->
+    <!-- ================================================= -->
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+
+        android:pathData="
+            M12,6
+            C10,3 7,2 6,4
+            C5,6 8,7 12,6"/>
+
+
+    <!-- ================================================= -->
+    <!-- RIGHT RIBBON -->
+    <!-- ================================================= -->
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+
+        android:pathData="
+            M12,6
+            C14,3 17,2 18,4
+            C19,6 16,7 12,6"/>
+
+</vector>

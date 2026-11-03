@@ -306,6 +306,15 @@ public class LoginForm extends AppCompatActivity {
                             return;
                         }
 
+                        if (loginResponse.getSessionToken() == null
+                                || loginResponse.getSessionToken().trim().isEmpty()) {
+                            AppToast.error(
+                                    LoginForm.this,
+                                    "Login succeeded but the server did not return a session token."
+                            );
+                            return;
+                        }
+
                         // =====================================================
 // SAVE LOGIN SESSION
 // =====================================================
@@ -342,6 +351,11 @@ public class LoginForm extends AppCompatActivity {
                                 loginResponse.getMobile(),
 
                                 loginResponse.getEmail()
+                        );
+
+                        // Store the server-issued token encrypted with Android Keystore.
+                        sessionStorage.saveSessionToken(
+                                loginResponse.getSessionToken()
                         );
 
 

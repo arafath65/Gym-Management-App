@@ -5,12 +5,14 @@ import com.arafath65.gymManagement.dto.response.ProgramEnrollmentResponse;
 import com.arafath65.gymManagement.entity.Branch;
 import com.arafath65.gymManagement.entity.Member;
 import com.arafath65.gymManagement.entity.Program;
+import com.arafath65.gymManagement.entity.ProgramBranch;
 import com.arafath65.gymManagement.entity.ProgramEnrollment;
 import com.arafath65.gymManagement.entity.RegisteredDevice;
 import com.arafath65.gymManagement.entity.Tenant;
 import com.arafath65.gymManagement.exception.BadRequestException;
 import com.arafath65.gymManagement.repository.BranchRepository;
 import com.arafath65.gymManagement.repository.MemberRepository;
+import com.arafath65.gymManagement.repository.ProgramBranchRepository;
 import com.arafath65.gymManagement.repository.ProgramRepository;
 import com.arafath65.gymManagement.repository.RegisteredDeviceRepository;
 import com.arafath65.gymManagement.repository.TenantRepository;
@@ -52,6 +54,9 @@ public class ProgramEnrollmentController {
     private final ProgramRepository
             programRepository;
 
+    private final ProgramBranchRepository
+            programBranchRepository;
+
 
     // =====================================================
     // CONSTRUCTOR
@@ -63,7 +68,8 @@ public class ProgramEnrollmentController {
             RegisteredDeviceRepository registeredDeviceRepository,
             BranchRepository branchRepository,
             MemberRepository memberRepository,
-            ProgramRepository programRepository) {
+            ProgramRepository programRepository,
+            ProgramBranchRepository programBranchRepository) {
 
         this.programEnrollmentService =
                 programEnrollmentService;
@@ -82,6 +88,9 @@ public class ProgramEnrollmentController {
 
         this.programRepository =
                 programRepository;
+
+        this.programBranchRepository =
+                programBranchRepository;
     }
 
 
@@ -203,13 +212,30 @@ public class ProgramEnrollmentController {
         }
 
 
-        if (program.getBranch() != null
-                && program.getBranch()
-                .getBranchId()
-                != branch.getBranchId()) {
+        // -------------------------------------------------
+        // VERIFY PROGRAM BRANCH ASSIGNMENT
+        // -------------------------------------------------
+
+        ProgramBranch programBranch =
+                programBranchRepository
+                        .findByTenant_TenantIdAndProgram_ProgramIdAndBranch_BranchId(
+                                tenant.getTenantId(),
+                                program.getProgramId(),
+                                branch.getBranchId()
+                        )
+                        .orElseThrow(() ->
+                                new BadRequestException(
+                                        "Program is not available for this branch."
+                                )
+                        );
+
+
+        if (!Boolean.TRUE.equals(
+                programBranch.getStatus()
+        )) {
 
             throw new BadRequestException(
-                    "Program is not available for this branch."
+                    "Program is inactive for this branch."
             );
         }
 
@@ -914,7 +940,7 @@ public class ProgramEnrollmentController {
 
 
     // =====================================================
-    // VALIDATE BRANCH
+    // VALIDATE BRANCH BY ID
     // =====================================================
 
     private void validateBranch(
@@ -937,6 +963,10 @@ public class ProgramEnrollmentController {
         );
     }
 
+
+    // =====================================================
+    // VALIDATE BRANCH ENTITY
+    // =====================================================
 
     private void validateBranch(
             Tenant tenant,
@@ -965,7 +995,7 @@ public class ProgramEnrollmentController {
 
 
     // =====================================================
-    // TENANT + DEVICE
+    // TENANT + DEVICE VALIDATION
     // =====================================================
 
     private Tenant validateTenantAndDevice(

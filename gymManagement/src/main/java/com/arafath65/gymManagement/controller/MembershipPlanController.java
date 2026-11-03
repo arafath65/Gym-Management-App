@@ -1,15 +1,19 @@
 package com.arafath65.gymManagement.controller;
 
 import com.arafath65.gymManagement.dto.request.MembershipPlanRequest;
+import com.arafath65.gymManagement.dto.response.MembershipPlanBenefitResponse;
+import com.arafath65.gymManagement.dto.response.MembershipPlanBranchResponse;
 import com.arafath65.gymManagement.dto.response.MembershipPlanResponse;
 import com.arafath65.gymManagement.entity.Branch;
 import com.arafath65.gymManagement.entity.MembershipPlan;
+import com.arafath65.gymManagement.entity.MembershipPlanBranch;
 import com.arafath65.gymManagement.entity.RegisteredDevice;
 import com.arafath65.gymManagement.entity.Tenant;
 import com.arafath65.gymManagement.exception.BadRequestException;
 import com.arafath65.gymManagement.repository.BranchRepository;
 import com.arafath65.gymManagement.repository.RegisteredDeviceRepository;
 import com.arafath65.gymManagement.repository.TenantRepository;
+import com.arafath65.gymManagement.service.MembershipPlanBenefitService;
 import com.arafath65.gymManagement.service.MembershipPlanService;
 import com.arafath65.gymManagement.util.ApiResponse;
 
@@ -32,6 +36,9 @@ public class MembershipPlanController {
 
     private final MembershipPlanService membershipPlanService;
 
+    private final MembershipPlanBenefitService
+            membershipPlanBenefitService;
+
     private final TenantRepository tenantRepository;
 
     private final RegisteredDeviceRepository
@@ -46,12 +53,16 @@ public class MembershipPlanController {
 
     public MembershipPlanController(
             MembershipPlanService membershipPlanService,
+            MembershipPlanBenefitService membershipPlanBenefitService,
             TenantRepository tenantRepository,
             RegisteredDeviceRepository registeredDeviceRepository,
             BranchRepository branchRepository) {
 
         this.membershipPlanService =
                 membershipPlanService;
+
+        this.membershipPlanBenefitService =
+                membershipPlanBenefitService;
 
         this.tenantRepository =
                 tenantRepository;
@@ -83,6 +94,81 @@ public class MembershipPlanController {
             @RequestBody
             MembershipPlanRequest request) {
 
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
+
+        Tenant tenant =
+                validateTenantAndDevice(
+                        tenantNo,
+                        deviceToken
+                );
+
+
+        // -------------------------------------------------
+        // CREATE THROUGH SERVICE
+        // -------------------------------------------------
+
+        MembershipPlan savedPlan;
+
+        try {
+
+            savedPlan =
+                    membershipPlanService.create(
+                            request,
+                            tenant
+                    );
+
+        } catch (IllegalArgumentException e) {
+
+            throw new BadRequestException(
+                    e.getMessage()
+            );
+        }
+
+
+        // -------------------------------------------------
+        // RESPONSE
+        // -------------------------------------------------
+
+        MembershipPlanResponse response =
+                toResponse(
+                        savedPlan
+                );
+
+
+        return new ResponseEntity<>(
+                new ApiResponse<>(
+                        true,
+                        "Membership plan created successfully.",
+                        response
+                ),
+                HttpStatus.CREATED
+        );
+    }
+
+
+    // =====================================================
+    // UPDATE MEMBERSHIP PLAN
+    // =====================================================
+
+    @PutMapping("/{membershipPlanId}")
+    public ResponseEntity<
+            ApiResponse<MembershipPlanResponse>>
+    updatePlan(
+
+            @RequestHeader("X-Tenant-No")
+            String tenantNo,
+
+            @RequestHeader("X-Device-Token")
+            String deviceToken,
+
+            @PathVariable
+            Integer membershipPlanId,
+
+            @Valid
+            @RequestBody
+            MembershipPlanRequest request) {
 
         // -------------------------------------------------
         // VALIDATE TENANT + DEVICE
@@ -96,120 +182,26 @@ public class MembershipPlanController {
 
 
         // -------------------------------------------------
-        // BUILD ENTITY
+        // UPDATE THROUGH SERVICE
         // -------------------------------------------------
 
-        MembershipPlan plan =
-                new MembershipPlan();
+        MembershipPlan updatedPlan;
 
-        plan.setTenant(tenant);
+        try {
 
-        plan.setPlanCode(
-                request.getPlanCode()
-        );
-
-        plan.setPlanName(
-                request.getPlanName()
-        );
-
-        plan.setDescription(
-                request.getDescription()
-        );
-
-        plan.setDurationType(
-                request.getDurationType()
-        );
-
-        plan.setDurationValue(
-                request.getDurationValue()
-        );
-
-        plan.setPrice(
-                request.getPrice()
-        );
-
-        plan.setJoiningFee(
-                request.getJoiningFee()
-        );
-
-        plan.setRenewalFee(
-                request.getRenewalFee()
-        );
-
-        plan.setBillingType(
-                request.getBillingType()
-        );
-
-        plan.setBillingFrequency(
-                request.getBillingFrequency()
-        );
-
-        plan.setBillingFrequencyValue(
-                request.getBillingFrequencyValue()
-        );
-
-        plan.setFreezeAllowed(
-                request.getFreezeAllowed()
-        );
-
-        plan.setMaxFreezeDays(
-                request.getMaxFreezeDays()
-        );
-
-        plan.setFreezeFee(
-                request.getFreezeFee()
-        );
-
-        plan.setAccessType(
-                request.getAccessType()
-        );
-
-
-        // -------------------------------------------------
-        // BRANCH
-        // -------------------------------------------------
-
-        if (request.getBranchId() != null) {
-
-            Branch branch =
-                    branchRepository.findById(
-                            request.getBranchId()
-                    ).orElseThrow(() ->
-                            new BadRequestException(
-                                    "Branch not found."
-                            )
+            updatedPlan =
+                    membershipPlanService.update(
+                            membershipPlanId,
+                            request,
+                            tenant
                     );
 
-            if (branch.getTenant()
-                    .getTenantId()
-                    != tenant.getTenantId()) {
+        } catch (IllegalArgumentException e) {
 
-                throw new BadRequestException(
-                        "Branch does not belong to this tenant."
-                );
-            }
-
-            if (!Boolean.TRUE.equals(
-                    branch.getStatus()
-            )) {
-
-                throw new BadRequestException(
-                        "Branch is inactive."
-                );
-            }
-
-            plan.setBranch(branch);
+            throw new BadRequestException(
+                    e.getMessage()
+            );
         }
-
-
-        // -------------------------------------------------
-        // SAVE
-        // -------------------------------------------------
-
-        MembershipPlan savedPlan =
-                membershipPlanService.save(
-                        plan
-                );
 
 
         // -------------------------------------------------
@@ -217,27 +209,23 @@ public class MembershipPlanController {
         // -------------------------------------------------
 
         MembershipPlanResponse response =
-                toResponse(savedPlan);
-
-
-        ApiResponse<MembershipPlanResponse>
-                apiResponse =
-                new ApiResponse<>(
-                        true,
-                        "Membership plan created successfully.",
-                        response
+                toResponse(
+                        updatedPlan
                 );
 
 
-        return new ResponseEntity<>(
-                apiResponse,
-                HttpStatus.CREATED
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Membership plan updated successfully.",
+                        response
+                )
         );
     }
 
 
     // =====================================================
-    // GET MEMBERSHIP PLANS
+    // GET ALL MEMBERSHIP PLANS
     // =====================================================
 
     @GetMapping
@@ -253,7 +241,6 @@ public class MembershipPlanController {
 
             @RequestParam(required = false)
             Integer branchId) {
-
 
         // -------------------------------------------------
         // VALIDATE TENANT + DEVICE
@@ -298,23 +285,21 @@ public class MembershipPlanController {
         // RESPONSE
         // -------------------------------------------------
 
-        List<MembershipPlanResponse> responses =
+        List<MembershipPlanResponse>
+                responses =
                 plans.stream()
                         .map(this::toResponse)
-                        .collect(Collectors.toList());
+                        .collect(
+                                Collectors.toList()
+                        );
 
 
-        ApiResponse<List<MembershipPlanResponse>>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Membership plans loaded successfully.",
                         responses
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                )
         );
     }
 
@@ -337,6 +322,9 @@ public class MembershipPlanController {
             @RequestParam(required = false)
             Integer branchId) {
 
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -344,6 +332,10 @@ public class MembershipPlanController {
                         deviceToken
                 );
 
+
+        // -------------------------------------------------
+        // GET ACTIVE PLANS
+        // -------------------------------------------------
 
         List<MembershipPlan> plans;
 
@@ -371,29 +363,31 @@ public class MembershipPlanController {
         }
 
 
-        List<MembershipPlanResponse> responses =
+        // -------------------------------------------------
+        // RESPONSE
+        // -------------------------------------------------
+
+        List<MembershipPlanResponse>
+                responses =
                 plans.stream()
                         .map(this::toResponse)
-                        .collect(Collectors.toList());
+                        .collect(
+                                Collectors.toList()
+                        );
 
 
-        ApiResponse<List<MembershipPlanResponse>>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Active membership plans loaded successfully.",
                         responses
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                )
         );
     }
 
 
     // =====================================================
-    // GET MEMBERSHIP PLAN BY ID
+    // GET PLAN BY ID
     // =====================================================
 
     @GetMapping("/{membershipPlanId}")
@@ -410,6 +404,9 @@ public class MembershipPlanController {
             @PathVariable
             Integer membershipPlanId) {
 
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -417,6 +414,10 @@ public class MembershipPlanController {
                         deviceToken
                 );
 
+
+        // -------------------------------------------------
+        // FIND PLAN
+        // -------------------------------------------------
 
         MembershipPlan plan =
                 membershipPlanService
@@ -430,37 +431,32 @@ public class MembershipPlanController {
                         );
 
 
-        if (plan.getTenant()
-                .getTenantId()
-                != tenant.getTenantId()) {
+        // -------------------------------------------------
+        // TENANT SECURITY
+        // -------------------------------------------------
 
-            throw new BadRequestException(
-                    "Membership plan does not belong to this tenant."
-            );
-        }
-
-
-        MembershipPlanResponse response =
-                toResponse(plan);
+        validatePlanTenant(
+                plan,
+                tenant
+        );
 
 
-        ApiResponse<MembershipPlanResponse>
-                apiResponse =
+        // -------------------------------------------------
+        // RESPONSE
+        // -------------------------------------------------
+
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Membership plan loaded successfully.",
-                        response
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                        toResponse(plan)
+                )
         );
     }
 
 
     // =====================================================
-    // ACTIVATE PLAN
+    // ACTIVATE
     // =====================================================
 
     @PutMapping("/{membershipPlanId}/activate")
@@ -477,7 +473,6 @@ public class MembershipPlanController {
             @PathVariable
             Integer membershipPlanId) {
 
-
         Tenant tenant =
                 validateTenantAndDevice(
                         tenantNo,
@@ -503,29 +498,35 @@ public class MembershipPlanController {
         );
 
 
-        MembershipPlan updated =
-                membershipPlanService.activate(
-                        membershipPlanId
-                );
+        MembershipPlan updatedPlan;
 
+        try {
 
-        ApiResponse<MembershipPlanResponse>
-                apiResponse =
-                new ApiResponse<>(
-                        true,
-                        "Membership plan activated successfully.",
-                        toResponse(updated)
-                );
+            updatedPlan =
+                    membershipPlanService.activate(
+                            membershipPlanId
+                    );
+
+        } catch (IllegalArgumentException e) {
+
+            throw new BadRequestException(
+                    e.getMessage()
+            );
+        }
 
 
         return ResponseEntity.ok(
-                apiResponse
+                new ApiResponse<>(
+                        true,
+                        "Membership plan activated successfully.",
+                        toResponse(updatedPlan)
+                )
         );
     }
 
 
     // =====================================================
-    // DEACTIVATE PLAN
+    // DEACTIVATE
     // =====================================================
 
     @PutMapping("/{membershipPlanId}/deactivate")
@@ -542,7 +543,6 @@ public class MembershipPlanController {
             @PathVariable
             Integer membershipPlanId) {
 
-
         Tenant tenant =
                 validateTenantAndDevice(
                         tenantNo,
@@ -568,28 +568,32 @@ public class MembershipPlanController {
         );
 
 
-        membershipPlanService.deactivate(
-                membershipPlanId
-        );
+        try {
+
+            membershipPlanService.deactivate(
+                    membershipPlanId
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            throw new BadRequestException(
+                    e.getMessage()
+            );
+        }
 
 
-        ApiResponse<Void>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Membership plan deactivated successfully.",
                         null
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                )
         );
     }
 
 
     // =====================================================
-    // DELETE PLAN
+    // DELETE
     // =====================================================
 
     @DeleteMapping("/{membershipPlanId}")
@@ -606,7 +610,6 @@ public class MembershipPlanController {
             @PathVariable
             Integer membershipPlanId) {
 
-
         Tenant tenant =
                 validateTenantAndDevice(
                         tenantNo,
@@ -632,22 +635,26 @@ public class MembershipPlanController {
         );
 
 
-        membershipPlanService.delete(
-                membershipPlanId
-        );
+        try {
+
+            membershipPlanService.delete(
+                    membershipPlanId
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            throw new BadRequestException(
+                    e.getMessage()
+            );
+        }
 
 
-        ApiResponse<Void>
-                apiResponse =
+        return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
                         "Membership plan deleted successfully.",
                         null
-                );
-
-
-        return ResponseEntity.ok(
-                apiResponse
+                )
         );
     }
 
@@ -662,24 +669,24 @@ public class MembershipPlanController {
         MembershipPlanResponse response =
                 new MembershipPlanResponse();
 
+
+        // -------------------------------------------------
+        // BASIC
+        // -------------------------------------------------
+
         response.setMembershipPlanId(
                 plan.getMembershipPlanId()
         );
 
-        response.setTenantId(
-                plan.getTenant().getTenantId()
-        );
 
-        if (plan.getBranch() != null) {
+        if (plan.getTenant() != null) {
 
-            response.setBranchId(
-                    plan.getBranch().getBranchId()
-            );
-
-            response.setBranchName(
-                    plan.getBranch().getBranchName()
+            response.setTenantId(
+                    plan.getTenant()
+                            .getTenantId()
             );
         }
+
 
         response.setPlanCode(
                 plan.getPlanCode()
@@ -693,6 +700,11 @@ public class MembershipPlanController {
                 plan.getDescription()
         );
 
+
+        // -------------------------------------------------
+        // DURATION
+        // -------------------------------------------------
+
         response.setDurationType(
                 plan.getDurationType()
         );
@@ -701,17 +713,10 @@ public class MembershipPlanController {
                 plan.getDurationValue()
         );
 
-        response.setPrice(
-                plan.getPrice()
-        );
 
-        response.setJoiningFee(
-                plan.getJoiningFee()
-        );
-
-        response.setRenewalFee(
-                plan.getRenewalFee()
-        );
+        // -------------------------------------------------
+        // BILLING
+        // -------------------------------------------------
 
         response.setBillingType(
                 plan.getBillingType()
@@ -725,6 +730,33 @@ public class MembershipPlanController {
                 plan.getBillingFrequencyValue()
         );
 
+
+        // -------------------------------------------------
+        // ACCESS BILLING
+        // -------------------------------------------------
+
+        response.setAccessBillingMode(
+                plan.getAccessBillingMode()
+        );
+
+
+        // -------------------------------------------------
+        // MONTHLY / DAILY
+        // -------------------------------------------------
+
+        response.setMonthlyActivationRequired(
+                plan.getMonthlyActivationRequired()
+        );
+
+        response.setDailyChargeEnabled(
+                plan.getDailyChargeEnabled()
+        );
+
+
+        // -------------------------------------------------
+        // FREEZE
+        // -------------------------------------------------
+
         response.setFreezeAllowed(
                 plan.getFreezeAllowed()
         );
@@ -737,13 +769,85 @@ public class MembershipPlanController {
                 plan.getFreezeFee()
         );
 
+
+        // -------------------------------------------------
+        // ACCESS
+        // -------------------------------------------------
+
         response.setAccessType(
                 plan.getAccessType()
         );
 
+
+        // -------------------------------------------------
+        // STATUS
+        // -------------------------------------------------
+
         response.setStatus(
                 plan.getStatus()
         );
+
+
+        // -------------------------------------------------
+        // BRANCH ASSIGNMENTS
+        // -------------------------------------------------
+
+        if (plan.getBranchAssignments() != null) {
+
+            List<MembershipPlanBranchResponse>
+                    branchResponses =
+                    plan.getBranchAssignments()
+                            .stream()
+                            .map(
+                                    this::toBranchResponse
+                            )
+                            .collect(
+                                    Collectors.toList()
+                            );
+
+            response.setBranchAssignments(
+                    branchResponses
+            );
+        }
+
+
+        // -------------------------------------------------
+        // INCLUDED BENEFITS
+        // -------------------------------------------------
+
+        if (plan.getMembershipPlanId() != null
+                && plan.getTenant() != null) {
+
+            List<MembershipPlanBenefitResponse>
+                    benefitResponses =
+                    membershipPlanBenefitService
+                            .getPlanBenefits(
+                                    plan.getTenant()
+                                            .getTenantId(),
+                                    plan.getMembershipPlanId()
+                            )
+                            .stream()
+                            .filter(
+                                    benefit ->
+                                            benefit != null
+                                                    && Boolean.TRUE.equals(
+                                                    benefit.getStatus()
+                                            )
+                            )
+                            .collect(
+                                    Collectors.toList()
+                            );
+
+
+            response.setBenefits(
+                    benefitResponses
+            );
+        }
+
+
+        // -------------------------------------------------
+        // AUDIT
+        // -------------------------------------------------
 
         response.setCreatedAt(
                 plan.getCreatedAt()
@@ -752,6 +856,74 @@ public class MembershipPlanController {
         response.setUpdatedAt(
                 plan.getUpdatedAt()
         );
+
+
+        return response;
+    }
+
+
+    // =====================================================
+    // BRANCH ASSIGNMENT → RESPONSE
+    // =====================================================
+
+    private MembershipPlanBranchResponse
+    toBranchResponse(
+            MembershipPlanBranch assignment) {
+
+        MembershipPlanBranchResponse response =
+                new MembershipPlanBranchResponse();
+
+
+        response.setMembershipPlanBranchId(
+                assignment
+                        .getMembershipPlanBranchId()
+        );
+
+
+        if (assignment.getBranch() != null) {
+
+            Branch branch =
+                    assignment.getBranch();
+
+
+            response.setBranchId(
+                    branch.getBranchId()
+            );
+
+            response.setBranchNo(
+                    branch.getBranchNo()
+            );
+
+            response.setBranchName(
+                    branch.getBranchName()
+            );
+        }
+
+
+        response.setPrice(
+                assignment.getPrice()
+        );
+
+        response.setJoiningFee(
+                assignment.getJoiningFee()
+        );
+
+        response.setRenewalFee(
+                assignment.getRenewalFee()
+        );
+
+        response.setStatus(
+                assignment.getStatus()
+        );
+
+        response.setCreatedAt(
+                assignment.getCreatedAt()
+        );
+
+        response.setUpdatedAt(
+                assignment.getUpdatedAt()
+        );
+
 
         return response;
     }
@@ -764,6 +936,14 @@ public class MembershipPlanController {
     private void validatePlanTenant(
             MembershipPlan plan,
             Tenant tenant) {
+
+        if (plan.getTenant() == null) {
+
+            throw new BadRequestException(
+                    "Membership plan tenant is missing."
+            );
+        }
+
 
         if (plan.getTenant()
                 .getTenantId()
@@ -784,16 +964,28 @@ public class MembershipPlanController {
             Tenant tenant,
             Integer branchId) {
 
-        Branch branch =
-                branchRepository.findById(
-                        branchId
-                ).orElseThrow(() ->
-                        new BadRequestException(
-                                "Branch not found."
-                        )
-                );
+        if (branchId == null) {
 
-        if (branch.getTenant()
+            throw new BadRequestException(
+                    "Branch ID is required."
+            );
+        }
+
+
+        Branch branch =
+                branchRepository
+                        .findById(
+                                branchId
+                        )
+                        .orElseThrow(() ->
+                                new BadRequestException(
+                                        "Branch not found."
+                                )
+                        );
+
+
+        if (branch.getTenant() == null
+                || branch.getTenant()
                 .getTenantId()
                 != tenant.getTenantId()) {
 
@@ -801,6 +993,7 @@ public class MembershipPlanController {
                     "Branch does not belong to this tenant."
             );
         }
+
 
         if (!Boolean.TRUE.equals(
                 branch.getStatus()
@@ -818,10 +1011,25 @@ public class MembershipPlanController {
     // =====================================================
 
     private Tenant validateTenantAndDevice(
-
             String tenantNo,
-
             String deviceToken) {
+
+        if (tenantNo == null
+                || tenantNo.trim().isEmpty()) {
+
+            throw new BadRequestException(
+                    "Tenant number is required."
+            );
+        }
+
+
+        if (deviceToken == null
+                || deviceToken.trim().isEmpty()) {
+
+            throw new BadRequestException(
+                    "Device token is required."
+            );
+        }
 
 
         // -------------------------------------------------
@@ -888,7 +1096,8 @@ public class MembershipPlanController {
         // DEVICE → TENANT
         // -------------------------------------------------
 
-        if (device.getTenant()
+        if (device.getTenant() == null
+                || device.getTenant()
                 .getTenantId()
                 != tenant.getTenantId()) {
 

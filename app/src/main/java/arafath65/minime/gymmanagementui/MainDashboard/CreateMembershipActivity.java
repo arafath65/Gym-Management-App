@@ -1,5 +1,7 @@
+
 package arafath65.minime.gymmanagementui.MainDashboard;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.Editable;
@@ -26,6 +28,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import org.json.JSONObject;
+
 import arafath65.minime.gymmanagementui.Network.ApiClient;
 import arafath65.minime.gymmanagementui.Network.ApiService;
 import arafath65.minime.gymmanagementui.R;
@@ -34,6 +38,7 @@ import arafath65.minime.gymmanagementui.model.ApiResponse;
 import arafath65.minime.gymmanagementui.model.BranchResponse;
 import arafath65.minime.gymmanagementui.model.MemberMembershipRequest;
 import arafath65.minime.gymmanagementui.model.MemberMembershipResponse;
+import arafath65.minime.gymmanagementui.model.MembershipPlanBranchResponse;
 import arafath65.minime.gymmanagementui.model.MembershipPlanResponse;
 
 import retrofit2.Call;
@@ -48,6 +53,7 @@ public class CreateMembershipActivity
     // =====================================================
 
     private int memberId;
+    private int memberBranchId;
 
     private String memberName;
 
@@ -104,6 +110,15 @@ public class CreateMembershipActivity
     private MembershipPlanResponse selectedPlan;
 
 
+    /*
+     * The selected branch's pricing assignment.
+     *
+     * This is the important change from the old structure.
+     */
+    private MembershipPlanBranchResponse
+            selectedPlanBranch;
+
+
     // =====================================================
     // FORMATTERS
     // =====================================================
@@ -153,6 +168,22 @@ public class CreateMembershipActivity
                         "memberId",
                         0
                 );
+
+        memberBranchId = getIntent().getIntExtra(
+                "memberBranchId",
+                0
+        );
+
+        if (memberBranchId <= 0) {
+            Toast.makeText(
+                    this,
+                    "Member branch information is missing.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            finish();
+            return;
+        }
 
 
         memberName =
@@ -484,13 +515,8 @@ public class CreateMembershipActivity
                                                     >
                                             > response) {
 
-                                if (!response.isSuccessful()
-                                        || response.body() == null) {
-
-                                    showError(
-                                            "Unable to load branches."
-                                    );
-
+                                if (!response.isSuccessful() || response.body() == null) {
+                                    showHttpError(response, "loading branches");
                                     return;
                                 }
 
@@ -515,13 +541,43 @@ public class CreateMembershipActivity
 
 
                                 branches.clear();
+                                branches.addAll(apiResponse.getData());
 
-                                branches.addAll(
-                                        apiResponse.getData()
+                                BranchResponse memberBranch = null;
+
+                                for (BranchResponse branch : branches) {
+                                    if (branch != null
+                                            && branch.getBranchId() != null
+                                            && branch.getBranchId().intValue() == memberBranchId) {
+
+                                        memberBranch = branch;
+                                        break;
+                                    }
+                                }
+
+                                if (memberBranch == null) {
+                                    showError(
+                                            "The member's assigned branch was not found "
+                                                    + "in the available branches."
+                                    );
+                                    return;
+                                }
+
+                                selectedBranch = memberBranch;
+
+// Display the member's assigned branch.
+                                txtBranch.setText(
+                                        safeText(memberBranch.getBranchName()),
+                                        false
                                 );
 
+// Do not allow the user to change to another branch.
+                                txtBranch.setEnabled(false);
+                                txtBranch.setClickable(false);
+                                txtBranch.setKeyListener(null);
 
-                                setupBranchDropdown();
+// Load plans and pricing for this branch only.
+                                loadPlans();
                             }
 
 
@@ -655,6 +711,10 @@ public class CreateMembershipActivity
                 null;
 
 
+        selectedPlanBranch =
+                null;
+
+
         txtPlanPrice.setText(
                 "Rs. 0.00"
         );
@@ -746,15 +806,26 @@ public class CreateMembershipActivity
                                     }
 
 
-                                    if (selectedBranch != null
-                                            && plan.getBranchId() != null
-                                            && !selectedBranch
-                                            .getBranchId()
-                                            .equals(
-                                                    plan.getBranchId()
-                                            )) {
+                                    /*
+                                     * A plan is available for the
+                                     * selected branch only when an
+                                     * active branch assignment exists.
+                                     */
+                                    if (selectedBranch != null) {
 
-                                        continue;
+                                        MembershipPlanBranchResponse
+                                                assignment =
+                                                getBranchAssignmentForPlan(
+                                                        plan,
+                                                        selectedBranch
+                                                                .getBranchId()
+                                                );
+
+
+                                        if (assignment == null) {
+
+                                            continue;
+                                        }
                                     }
 
 
@@ -786,6 +857,54 @@ public class CreateMembershipActivity
                             }
                         }
                 );
+    }
+
+
+    // =====================================================
+    // FIND BRANCH ASSIGNMENT
+    // =====================================================
+
+    private MembershipPlanBranchResponse
+    getBranchAssignmentForPlan(
+            MembershipPlanResponse plan,
+            Integer branchId) {
+
+        if (plan == null
+                || branchId == null
+                || plan.getBranchAssignments() == null) {
+
+            return null;
+        }
+
+
+        for (
+                MembershipPlanBranchResponse assignment
+                : plan.getBranchAssignments()
+        ) {
+
+            if (assignment == null) {
+                continue;
+            }
+
+
+            if (!Boolean.TRUE.equals(
+                    assignment.getStatus()
+            )) {
+
+                continue;
+            }
+
+
+            if (assignment.getBranchId() != null
+                    && assignment.getBranchId()
+                    .equals(branchId)) {
+
+                return assignment;
+            }
+        }
+
+
+        return null;
     }
 
 
@@ -851,6 +970,16 @@ public class CreateMembershipActivity
                             );
 
 
+                    selectedPlanBranch =
+                            getBranchAssignmentForPlan(
+                                    selectedPlan,
+                                    selectedBranch == null
+                                            ? null
+                                            : selectedBranch
+                                            .getBranchId()
+                            );
+
+
                     txtPlan.setError(
                             null
                     );
@@ -865,6 +994,16 @@ public class CreateMembershipActivity
 
             selectedPlan =
                     plans.get(0);
+
+
+            selectedPlanBranch =
+                    getBranchAssignmentForPlan(
+                            selectedPlan,
+                            selectedBranch == null
+                                    ? null
+                                    : selectedBranch
+                                    .getBranchId()
+                    );
 
 
             String planName =
@@ -902,7 +1041,8 @@ public class CreateMembershipActivity
 
     private void updatePlanSummary() {
 
-        if (selectedPlan == null) {
+        if (selectedPlan == null
+                || selectedPlanBranch == null) {
 
             txtPlanPrice.setText(
                     "Rs. 0.00"
@@ -923,16 +1063,30 @@ public class CreateMembershipActivity
         }
 
 
+        BigDecimal price =
+                safeDecimal(
+                        selectedPlanBranch
+                                .getPrice()
+                );
+
+
+        BigDecimal joiningFee =
+                safeDecimal(
+                        selectedPlanBranch
+                                .getJoiningFee()
+                );
+
+
         txtPlanPrice.setText(
                 formatMoney(
-                        selectedPlan.getPrice()
+                        price
                 )
         );
 
 
         txtJoiningFee.setText(
                 formatMoney(
-                        selectedPlan.getJoiningFee()
+                        joiningFee
                 )
         );
 
@@ -947,7 +1101,8 @@ public class CreateMembershipActivity
 
     private void calculateTotal() {
 
-        if (selectedPlan == null) {
+        if (selectedPlan == null
+                || selectedPlanBranch == null) {
 
             txtTotalAmount.setText(
                     "Rs. 0.00"
@@ -959,13 +1114,15 @@ public class CreateMembershipActivity
 
         BigDecimal price =
                 safeDecimal(
-                        selectedPlan.getPrice()
+                        selectedPlanBranch
+                                .getPrice()
                 );
 
 
         BigDecimal joiningFee =
                 safeDecimal(
-                        selectedPlan.getJoiningFee()
+                        selectedPlanBranch
+                                .getJoiningFee()
                 );
 
 
@@ -1007,10 +1164,12 @@ public class CreateMembershipActivity
         // BRANCH
         // -------------------------------------------------
 
-        if (selectedBranch == null) {
+        if (selectedBranch == null
+                || selectedBranch.getBranchId() == null
+                || selectedBranch.getBranchId().intValue() != memberBranchId) {
 
-            layoutBranch.setError(
-                    "Please select a branch."
+            showError(
+                    "The selected branch does not match the member's assigned branch."
             );
 
             return;
@@ -1025,6 +1184,27 @@ public class CreateMembershipActivity
 
             layoutPlan.setError(
                     "Please select a membership plan."
+            );
+
+            return;
+        }
+
+
+        // -------------------------------------------------
+        // VERIFY BRANCH ASSIGNMENT
+        // -------------------------------------------------
+
+        selectedPlanBranch =
+                getBranchAssignmentForPlan(
+                        selectedPlan,
+                        selectedBranch.getBranchId()
+                );
+
+
+        if (selectedPlanBranch == null) {
+
+            layoutPlan.setError(
+                    "This membership plan is not available at the selected branch."
             );
 
             return;
@@ -1061,13 +1241,15 @@ public class CreateMembershipActivity
 
         BigDecimal price =
                 safeDecimal(
-                        selectedPlan.getPrice()
+                        selectedPlanBranch
+                                .getPrice()
                 );
 
 
         BigDecimal joiningFee =
                 safeDecimal(
-                        selectedPlan.getJoiningFee()
+                        selectedPlanBranch
+                                .getJoiningFee()
                 );
 
 
@@ -1198,14 +1380,8 @@ public class CreateMembershipActivity
                                 );
 
 
-                                if (!response.isSuccessful()
-                                        || response.body() == null) {
-
-                                    showError(
-                                            "Unable to create membership. HTTP "
-                                                    + response.code()
-                                    );
-
+                                if (!response.isSuccessful() || response.body() == null) {
+                                    showHttpError(response, "creating membership");
                                     return;
                                 }
 
@@ -1269,7 +1445,11 @@ public class CreateMembershipActivity
 
                                 showError(
                                         "Connection failed: "
-                                                + t.getMessage()
+                                                + (
+                                                t.getMessage() == null
+                                                        ? "Unknown error."
+                                                        : t.getMessage()
+                                        )
                                 );
                             }
                         }
@@ -1440,15 +1620,115 @@ public class CreateMembershipActivity
     // ERROR
     // =====================================================
 
-    private void showError(
-            String message) {
+    private void showError(String message) {
+        String safeMessage = (message == null || message.trim().isEmpty())
+                ? "Something went wrong."
+                : message.trim();
 
         Toast.makeText(
                 this,
-                message == null
-                        ? "Something went wrong."
-                        : message,
+                safeMessage,
                 Toast.LENGTH_LONG
         ).show();
+    }
+
+    /**
+     * Logs the complete HTTP error body and displays a readable server message.
+     * Call this only for unsuccessful Retrofit responses.
+     */
+    private void showHttpError(Response<?> response, String operation) {
+        int statusCode = response.code();
+        String rawBody = "";
+        String userMessage = "";
+
+        try {
+            if (response.errorBody() != null) {
+                rawBody = response.errorBody().string();
+            }
+        } catch (Exception e) {
+            android.util.Log.e(
+                    "CreateMembership",
+                    "Failed to read HTTP error body while " + operation,
+                    e
+            );
+        }
+
+        android.util.Log.e(
+                "CreateMembership",
+                "HTTP " + statusCode + " while " + operation
+        );
+        android.util.Log.e(
+                "CreateMembership",
+                "ERROR BODY: " + (rawBody.isEmpty() ? "<empty>" : rawBody)
+        );
+
+        // Extract a useful message if the backend returns JSON.
+        if (!rawBody.trim().isEmpty()) {
+            try {
+                JSONObject json = new JSONObject(rawBody);
+
+                userMessage = json.optString("message", "").trim();
+                if (userMessage.isEmpty()) {
+                    userMessage = json.optString("error", "").trim();
+                }
+                if (userMessage.isEmpty()) {
+                    userMessage = json.optString("details", "").trim();
+                }
+            } catch (Exception ignored) {
+                // The backend may return plain text or HTML instead of JSON.
+            }
+        }
+
+        if (userMessage.isEmpty()) {
+            userMessage = rawBody.trim();
+        }
+
+        if (userMessage.isEmpty()) {
+            userMessage = "The server returned no error details.";
+        }
+
+        String title = "Request failed (HTTP " + statusCode + ")";
+        String displayMessage = "Unable to complete request while "
+                + operation + ".\n\n" + userMessage;
+
+        // A dialog is easier to read than a short Toast for detailed API errors.
+        String finalRawBody = rawBody;
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(displayMessage)
+                .setPositiveButton("OK", null)
+                .setNeutralButton("Copy details", (dialog, which) -> {
+                    android.content.ClipboardManager clipboard =
+                            (android.content.ClipboardManager)
+                                    getSystemService(CLIPBOARD_SERVICE);
+
+
+
+                    final int copiedStatusCode = statusCode;
+                    final String copiedOperation = operation;
+                    final String copiedRawBody = finalRawBody;
+
+                    if (clipboard != null) {
+                        android.content.ClipData clip =
+                                android.content.ClipData.newPlainText(
+                                        "API error details",
+                                        "HTTP " + copiedStatusCode
+                                                + "\nOperation: " + copiedOperation
+                                                + "\nResponse body: "
+                                                + (copiedRawBody.isEmpty()
+                                                ? "<empty>"
+                                                : copiedRawBody)
+                                );
+
+                        clipboard.setPrimaryClip(clip);
+
+                        Toast.makeText(
+                                this,
+                                "Full error details copied.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                })
+                .show();
     }
 }

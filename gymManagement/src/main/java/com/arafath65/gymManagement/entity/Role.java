@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
         name = "roles",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_roles_role_name",
-                        columnNames = "role_name"
+                        name = "uk_roles_tenant_role_name",
+                        columnNames = {"tenant_id", "role_name"}
                 )
         }
 )
@@ -19,6 +19,11 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")
     private Integer roleId;
+
+    // NULL tenant_id is reserved for system-wide template roles.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id")
+    private Tenant tenant;
 
     @Column(
             name = "role_name",
@@ -82,6 +87,14 @@ public class Role {
     // =========================================================
     // GETTERS / SETTERS
     // =========================================================
+
+    public Tenant getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(Tenant tenant) {
+        this.tenant = tenant;
+    }
 
     public Integer getRoleId() {
         return roleId;

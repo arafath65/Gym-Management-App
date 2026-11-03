@@ -9,21 +9,54 @@ import java.time.LocalDateTime;
 
 public class MembershipPaymentRequest {
 
+    // =====================================================
     // MEMBERSHIP
+    // =====================================================
 
     @NotNull(message = "Membership is required.")
     private Integer memberMembershipId;
 
 
-    // RENEWAL
-    // Optional.
-    // Null = original membership payment.
-    // Value = renewal payment.
+    // =====================================================
+    // MEMBERSHIP RENEWAL
+    // =====================================================
+
+    /*
+     * Optional.
+     *
+     * If provided:
+     *     Payment belongs to a membership renewal.
+     *
+     * Must NOT be provided together with
+     * membershipBillingCycleId.
+     */
 
     private Integer membershipRenewalId;
 
 
-    // PAYMENT
+    // =====================================================
+    // BILLING CYCLE
+    // =====================================================
+
+    /*
+     * Optional.
+     *
+     * Used for:
+     *
+     * MONTHLY_CONTRACT
+     * MONTHLY_FLEX
+     * DAILY
+     *
+     * Must NOT be provided together with
+     * membershipRenewalId.
+     */
+
+    private Integer membershipBillingCycleId;
+
+
+    /// =====================================================
+// PAYMENT
+// =====================================================
 
     @NotNull(message = "Payment amount is required.")
     @DecimalMin(
@@ -33,18 +66,38 @@ public class MembershipPaymentRequest {
     private BigDecimal amount;
 
 
-    @NotNull(message = "Payment method is required.")
-    private MembershipPayment.PaymentMethod paymentMethod;
+// =====================================================
+// PAYMENT DETAILS
+// =====================================================
 
+    @NotNull(message = "Payment details are required.")
+    @jakarta.validation.Valid
+    @jakarta.validation.constraints.NotEmpty(
+            message = "At least one payment method is required."
+    )
+    private java.util.List<MembershipPaymentDetailRequest>
+            paymentDetails;
+
+
+    // =====================================================
+    // PAYMENT DATE
+    // =====================================================
 
     private LocalDateTime paymentDate;
 
-    private String referenceNumber;
+
+
+
+    // =====================================================
+    // NOTES
+    // =====================================================
 
     private String notes;
 
 
+    // =====================================================
     // GETTERS / SETTERS
+    // =====================================================
 
     public Integer getMemberMembershipId() {
         return memberMembershipId;
@@ -52,9 +105,11 @@ public class MembershipPaymentRequest {
 
     public void setMemberMembershipId(
             Integer memberMembershipId) {
+
         this.memberMembershipId =
                 memberMembershipId;
     }
+
 
     public Integer getMembershipRenewalId() {
         return membershipRenewalId;
@@ -62,26 +117,33 @@ public class MembershipPaymentRequest {
 
     public void setMembershipRenewalId(
             Integer membershipRenewalId) {
+
         this.membershipRenewalId =
                 membershipRenewalId;
     }
+
+
+    public Integer getMembershipBillingCycleId() {
+        return membershipBillingCycleId;
+    }
+
+    public void setMembershipBillingCycleId(
+            Integer membershipBillingCycleId) {
+
+        this.membershipBillingCycleId =
+                membershipBillingCycleId;
+    }
+
 
     public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
+    public void setAmount(
+            BigDecimal amount) {
 
-    public MembershipPayment.PaymentMethod getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(
-            MembershipPayment.PaymentMethod paymentMethod) {
-        this.paymentMethod =
-                paymentMethod;
+        this.amount =
+                amount;
     }
 
     public LocalDateTime getPaymentDate() {
@@ -90,25 +152,35 @@ public class MembershipPaymentRequest {
 
     public void setPaymentDate(
             LocalDateTime paymentDate) {
+
         this.paymentDate =
                 paymentDate;
     }
 
-    public String getReferenceNumber() {
-        return referenceNumber;
+
+    public java.util.List<MembershipPaymentDetailRequest>
+    getPaymentDetails() {
+
+        return paymentDetails;
     }
 
-    public void setReferenceNumber(
-            String referenceNumber) {
-        this.referenceNumber =
-                referenceNumber;
+    public void setPaymentDetails(
+            java.util.List<MembershipPaymentDetailRequest>
+                    paymentDetails) {
+
+        this.paymentDetails =
+                paymentDetails;
     }
+
 
     public String getNotes() {
         return notes;
     }
 
-    public void setNotes(String notes) {
-        this.notes = notes;
+    public void setNotes(
+            String notes) {
+
+        this.notes =
+                notes;
     }
 }

@@ -11,43 +11,76 @@ import java.util.Optional;
 public interface MembershipPlanRepository
         extends JpaRepository<MembershipPlan, Integer> {
 
-    List<MembershipPlan> findByTenant_TenantIdOrderByPlanNameAsc(
+    // =====================================================
+    // FIND ALL TENANT PLANS
+    // =====================================================
+
+    List<MembershipPlan>
+    findByTenant_TenantIdOrderByPlanNameAsc(
             Integer tenantId
     );
 
-    List<MembershipPlan> findByTenant_TenantIdAndBranch_BranchIdOrderByPlanNameAsc(
-            Integer tenantId,
-            Integer branchId
-    );
 
-    List<MembershipPlan> findByTenant_TenantIdAndStatusTrueOrderByPlanNameAsc(
+    // =====================================================
+    // FIND ACTIVE TENANT PLANS
+    // =====================================================
+
+    List<MembershipPlan>
+    findByTenant_TenantIdAndStatusTrueOrderByPlanNameAsc(
             Integer tenantId
     );
 
-    List<MembershipPlan> findByTenant_TenantIdAndBranch_BranchIdAndStatusTrueOrderByPlanNameAsc(
-            Integer tenantId,
-            Integer branchId
+
+    // =====================================================
+    // FIND INACTIVE TENANT PLANS
+    // =====================================================
+
+    List<MembershipPlan>
+    findByTenant_TenantIdAndStatusFalseOrderByPlanNameAsc(
+            Integer tenantId
     );
 
-    Optional<MembershipPlan> findByTenant_TenantIdAndPlanCode(
+
+    // =====================================================
+    // FIND BY PLAN ID + TENANT
+    // =====================================================
+
+    Optional<MembershipPlan>
+    findByMembershipPlanIdAndTenant_TenantId(
+            Integer membershipPlanId,
+            Integer tenantId
+    );
+
+
+    // =====================================================
+    // FIND BY PLAN CODE
+    // =====================================================
+
+    Optional<MembershipPlan>
+    findByTenant_TenantIdAndPlanCode(
             Integer tenantId,
             String planCode
     );
 
-    Optional<MembershipPlan> findByTenant_TenantIdAndBranch_BranchIdAndPlanCode(
+
+    // =====================================================
+    // CHECK DUPLICATE PLAN CODE
+    // =====================================================
+
+    boolean
+    existsByTenant_TenantIdAndPlanCode(
             Integer tenantId,
-            Integer branchId,
             String planCode
     );
 
-    boolean existsByTenant_TenantIdAndPlanCode(
-            Integer tenantId,
-            String planCode
-    );
 
-    boolean existsByTenant_TenantIdAndBranch_BranchIdAndPlanCode(
+    // =====================================================
+    // CHECK ACTIVE PLAN
+    // =====================================================
+
+    boolean
+    existsByTenant_TenantIdAndMembershipPlanIdAndStatusTrue(
             Integer tenantId,
-            Integer branchId,
-            String planCode
+            Integer membershipPlanId
     );
 }

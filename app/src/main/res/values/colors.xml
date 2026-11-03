@@ -21,5 +21,7 @@
     <color name="sidebar_background">#151A1D</color>
     <color name="topbar_background">#181D21</color>
 
+    <color name="red_primary">#E53935</color>
+
 
 </resources>

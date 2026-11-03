@@ -5,32 +5,45 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(
         name = "membership_renewals",
         indexes = {
+
                 @Index(
-                        name = "idx_membership_renewal_membership",
-                        columnList = "member_membership_id"
+                        name = "idx_membership_renewal_tenant",
+                        columnList = "tenant_id"
                 ),
-                @Index(
-                        name = "idx_membership_renewal_member",
-                        columnList = "member_id"
-                ),
+
                 @Index(
                         name = "idx_membership_renewal_branch",
                         columnList = "branch_id"
                 ),
+
+                @Index(
+                        name = "idx_membership_renewal_membership",
+                        columnList = "member_membership_id"
+                ),
+
                 @Index(
                         name = "idx_membership_renewal_date",
                         columnList = "renewal_date"
+                ),
+
+                @Index(
+                        name = "idx_membership_renewal_status",
+                        columnList = "status"
                 )
         }
 )
 public class MembershipRenewal {
 
+    // =====================================================
     // ID
+    // =====================================================
 
     @Id
     @GeneratedValue(
@@ -42,7 +55,9 @@ public class MembershipRenewal {
     private Integer membershipRenewalId;
 
 
+    // =====================================================
     // TENANT
+    // =====================================================
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -52,7 +67,9 @@ public class MembershipRenewal {
     private Tenant tenant;
 
 
+    // =====================================================
     // BRANCH
+    // =====================================================
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -62,7 +79,20 @@ public class MembershipRenewal {
     private Branch branch;
 
 
-    // MEMBER
+    // =====================================================
+    // MEMBER MEMBERSHIP
+    // =====================================================
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "member_membership_id",
+            nullable = false
+    )
+    private MemberMembership memberMembership;
+
+    // =====================================================
+// MEMBER
+// =====================================================
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -72,26 +102,43 @@ public class MembershipRenewal {
     private Member member;
 
 
-    // MEMBERSHIP
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "member_membership_id",
-            nullable = false
-    )
-    private MemberMembership memberMembership;
-
-
+    // =====================================================
     // RENEWAL NUMBER
+    // =====================================================
 
     @Column(
             name = "renewal_number",
+            nullable = false,
+            length = 50
+    )
+    private String renewalNumber;
+
+    // =====================================================
+// PAYMENTS
+// =====================================================
+
+    @OneToMany(
+            mappedBy = "membershipRenewal",
+            fetch = FetchType.LAZY
+    )
+    private List<MembershipPayment> payments =
+            new ArrayList<>();
+
+
+    // =====================================================
+    // RENEWAL DATE
+    // =====================================================
+
+    @Column(
+            name = "renewal_date",
             nullable = false
     )
-    private Integer renewalNumber;
+    private LocalDate renewalDate;
 
 
-    // PREVIOUS DATES
+    // =====================================================
+// PREVIOUS MEMBERSHIP PERIOD
+// =====================================================
 
     @Column(
             name = "previous_start_date",
@@ -107,7 +154,9 @@ public class MembershipRenewal {
     private LocalDate previousEndDate;
 
 
-    // NEW DATES
+// =====================================================
+// NEW MEMBERSHIP PERIOD
+// =====================================================
 
     @Column(
             name = "new_start_date",
@@ -123,7 +172,29 @@ public class MembershipRenewal {
     private LocalDate newEndDate;
 
 
+    // =====================================================
+    // RENEWAL PERIOD
+    // =====================================================
+
+    @Enumerated(EnumType.STRING)
+    @Column(
+            name = "duration_type",
+            nullable = false,
+            length = 20
+    )
+    private MembershipPlan.DurationType durationType;
+
+
+    @Column(
+            name = "duration_value",
+            nullable = false
+    )
+    private Integer durationValue;
+
+
+    // =====================================================
     // PRICE
+    // =====================================================
 
     @Column(
             name = "renewal_fee",
@@ -131,8 +202,13 @@ public class MembershipRenewal {
             precision = 12,
             scale = 2
     )
-    private BigDecimal renewalFee = BigDecimal.ZERO;
+    private BigDecimal renewalFee =
+            BigDecimal.ZERO;
 
+
+    // =====================================================
+    // DISCOUNT
+    // =====================================================
 
     @Column(
             name = "discount_amount",
@@ -140,8 +216,13 @@ public class MembershipRenewal {
             precision = 12,
             scale = 2
     )
-    private BigDecimal discountAmount = BigDecimal.ZERO;
+    private BigDecimal discountAmount =
+            BigDecimal.ZERO;
 
+
+    // =====================================================
+    // TOTAL
+    // =====================================================
 
     @Column(
             name = "total_amount",
@@ -149,10 +230,13 @@ public class MembershipRenewal {
             precision = 12,
             scale = 2
     )
-    private BigDecimal totalAmount = BigDecimal.ZERO;
+    private BigDecimal totalAmount =
+            BigDecimal.ZERO;
 
 
+    // =====================================================
     // PAYMENT
+    // =====================================================
 
     @Column(
             name = "paid_amount",
@@ -160,7 +244,8 @@ public class MembershipRenewal {
             precision = 12,
             scale = 2
     )
-    private BigDecimal paidAmount = BigDecimal.ZERO;
+    private BigDecimal paidAmount =
+            BigDecimal.ZERO;
 
 
     @Column(
@@ -169,19 +254,24 @@ public class MembershipRenewal {
             precision = 12,
             scale = 2
     )
-    private BigDecimal balanceAmount = BigDecimal.ZERO;
+    private BigDecimal balanceAmount =
+            BigDecimal.ZERO;
 
 
-    // RENEWAL DATE
+    // =====================================================
+    // STATUS
+    // =====================================================
 
     @Column(
-            name = "renewal_date",
+            name = "status",
             nullable = false
     )
-    private LocalDateTime renewalDate;
+    private Boolean status = true;
 
 
+    // =====================================================
     // NOTES
+    // =====================================================
 
     @Column(
             name = "notes",
@@ -190,7 +280,9 @@ public class MembershipRenewal {
     private String notes;
 
 
+    // =====================================================
     // AUDIT
+    // =====================================================
 
     @Column(
             name = "created_at",
@@ -206,17 +298,15 @@ public class MembershipRenewal {
     private LocalDateTime updatedAt;
 
 
+    // =====================================================
     // LIFECYCLE
+    // =====================================================
 
     @PrePersist
     protected void onCreate() {
 
         LocalDateTime now =
                 LocalDateTime.now();
-
-        if (renewalDate == null) {
-            renewalDate = now;
-        }
 
         createdAt = now;
         updatedAt = now;
@@ -231,7 +321,9 @@ public class MembershipRenewal {
     }
 
 
+    // =====================================================
     // GETTERS / SETTERS
+    // =====================================================
 
     public Integer getMembershipRenewalId() {
         return membershipRenewalId;
@@ -239,33 +331,33 @@ public class MembershipRenewal {
 
     public void setMembershipRenewalId(
             Integer membershipRenewalId) {
+
         this.membershipRenewalId =
                 membershipRenewalId;
     }
+
 
     public Tenant getTenant() {
         return tenant;
     }
 
-    public void setTenant(Tenant tenant) {
+    public void setTenant(
+            Tenant tenant) {
+
         this.tenant = tenant;
     }
+
 
     public Branch getBranch() {
         return branch;
     }
 
-    public void setBranch(Branch branch) {
+    public void setBranch(
+            Branch branch) {
+
         this.branch = branch;
     }
 
-    public Member getMember() {
-        return member;
-    }
-
-    public void setMember(Member member) {
-        this.member = member;
-    }
 
     public MemberMembership getMemberMembership() {
         return memberMembership;
@@ -273,18 +365,53 @@ public class MembershipRenewal {
 
     public void setMemberMembership(
             MemberMembership memberMembership) {
+
         this.memberMembership =
                 memberMembership;
     }
 
-    public Integer getRenewalNumber() {
+    public Member getMember() {
+        return member;
+    }
+
+    public void setMember(
+            Member member) {
+
+        this.member = member;
+    }
+
+    public List<MembershipPayment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(
+            List<MembershipPayment> payments) {
+
+        this.payments = payments;
+    }
+
+
+    public String getRenewalNumber() {
         return renewalNumber;
     }
 
     public void setRenewalNumber(
-            Integer renewalNumber) {
+            String renewalNumber) {
+
         this.renewalNumber =
                 renewalNumber;
+    }
+
+
+    public LocalDate getRenewalDate() {
+        return renewalDate;
+    }
+
+    public void setRenewalDate(
+            LocalDate renewalDate) {
+
+        this.renewalDate =
+                renewalDate;
     }
 
     public LocalDate getPreviousStartDate() {
@@ -293,9 +420,11 @@ public class MembershipRenewal {
 
     public void setPreviousStartDate(
             LocalDate previousStartDate) {
+
         this.previousStartDate =
                 previousStartDate;
     }
+
 
     public LocalDate getPreviousEndDate() {
         return previousEndDate;
@@ -303,9 +432,11 @@ public class MembershipRenewal {
 
     public void setPreviousEndDate(
             LocalDate previousEndDate) {
+
         this.previousEndDate =
                 previousEndDate;
     }
+
 
     public LocalDate getNewStartDate() {
         return newStartDate;
@@ -313,9 +444,11 @@ public class MembershipRenewal {
 
     public void setNewStartDate(
             LocalDate newStartDate) {
+
         this.newStartDate =
                 newStartDate;
     }
+
 
     public LocalDate getNewEndDate() {
         return newEndDate;
@@ -323,9 +456,37 @@ public class MembershipRenewal {
 
     public void setNewEndDate(
             LocalDate newEndDate) {
+
         this.newEndDate =
                 newEndDate;
     }
+
+
+    public MembershipPlan.DurationType
+    getDurationType() {
+
+        return durationType;
+    }
+
+    public void setDurationType(
+            MembershipPlan.DurationType durationType) {
+
+        this.durationType =
+                durationType;
+    }
+
+
+    public Integer getDurationValue() {
+        return durationValue;
+    }
+
+    public void setDurationValue(
+            Integer durationValue) {
+
+        this.durationValue =
+                durationValue;
+    }
+
 
     public BigDecimal getRenewalFee() {
         return renewalFee;
@@ -333,9 +494,11 @@ public class MembershipRenewal {
 
     public void setRenewalFee(
             BigDecimal renewalFee) {
+
         this.renewalFee =
                 renewalFee;
     }
+
 
     public BigDecimal getDiscountAmount() {
         return discountAmount;
@@ -343,9 +506,11 @@ public class MembershipRenewal {
 
     public void setDiscountAmount(
             BigDecimal discountAmount) {
+
         this.discountAmount =
                 discountAmount;
     }
+
 
     public BigDecimal getTotalAmount() {
         return totalAmount;
@@ -353,9 +518,11 @@ public class MembershipRenewal {
 
     public void setTotalAmount(
             BigDecimal totalAmount) {
+
         this.totalAmount =
                 totalAmount;
     }
+
 
     public BigDecimal getPaidAmount() {
         return paidAmount;
@@ -363,9 +530,11 @@ public class MembershipRenewal {
 
     public void setPaidAmount(
             BigDecimal paidAmount) {
+
         this.paidAmount =
                 paidAmount;
     }
+
 
     public BigDecimal getBalanceAmount() {
         return balanceAmount;
@@ -373,31 +542,40 @@ public class MembershipRenewal {
 
     public void setBalanceAmount(
             BigDecimal balanceAmount) {
+
         this.balanceAmount =
                 balanceAmount;
     }
 
-    public LocalDateTime getRenewalDate() {
-        return renewalDate;
+
+    public Boolean getStatus() {
+        return status;
     }
 
-    public void setRenewalDate(
-            LocalDateTime renewalDate) {
-        this.renewalDate =
-                renewalDate;
+    public void setStatus(
+            Boolean status) {
+
+        this.status =
+                status;
     }
+
 
     public String getNotes() {
         return notes;
     }
 
-    public void setNotes(String notes) {
-        this.notes = notes;
+    public void setNotes(
+            String notes) {
+
+        this.notes =
+                notes;
     }
+
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;

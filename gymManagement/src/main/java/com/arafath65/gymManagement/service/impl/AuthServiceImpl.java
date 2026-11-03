@@ -12,6 +12,7 @@ import com.arafath65.gymManagement.repository.RegisteredDeviceRepository;
 import com.arafath65.gymManagement.repository.TenantRepository;
 import com.arafath65.gymManagement.repository.UserRepository;
 import com.arafath65.gymManagement.service.AuthService;
+import com.arafath65.gymManagement.service.UserSessionService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,17 +25,20 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RegisteredDeviceRepository registeredDeviceRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserSessionService userSessionService;
 
     public AuthServiceImpl(
             TenantRepository tenantRepository,
             UserRepository userRepository,
             RegisteredDeviceRepository registeredDeviceRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            UserSessionService userSessionService) {
 
         this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
         this.registeredDeviceRepository = registeredDeviceRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userSessionService = userSessionService;
     }
 
 
@@ -180,10 +184,11 @@ public class AuthServiceImpl implements AuthService {
         // 11. Build Response
         // -----------------------------------------------------
 
-        return mapToResponse(
-                user,
-                tenant
-        );
+        LoginResponse response = mapToResponse(user, tenant);
+        UserSessionService.IssuedSession issued = userSessionService.create(user);
+        response.setSessionToken(issued.token());
+        response.setSessionExpiresAt(issued.expiresAt().toString());
+        return response;
     }
 
 

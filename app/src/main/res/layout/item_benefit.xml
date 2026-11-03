@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    android:layout_margin="6dp">
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/benefitCard"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        app:cardBackgroundColor="@color/login_card"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="2dp">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:orientation="vertical"
+
+            android:padding="16dp">
+
+
+            <!-- ========================================= -->
+            <!-- BENEFIT HEADER                            -->
+            <!-- ========================================= -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:gravity="center_vertical">
+
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+
+                    android:layout_weight="1"
+
+                    android:orientation="vertical">
+
+
+                    <TextView
+                        android:id="@+id/txtBenefitName"
+
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:text="Personal Training"
+
+                        android:textColor="@color/text_primary"
+                        android:textSize="17sp"
+                        android:textStyle="bold"
+
+                        android:maxLines="1"
+                        android:ellipsize="end"/>
+
+
+                    <TextView
+                        android:id="@+id/txtBenefitCode"
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="4dp"
+
+                        android:text="PT-001"
+
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"/>
+
+                </LinearLayout>
+
+
+                <!-- ===================================== -->
+                <!-- THREE DOT                              -->
+                <!-- ===================================== -->
+
+                <ImageButton
+                    android:id="@+id/btnBenefitMore"
+
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+
+                    android:background="@drawable/bg_icon_button"
+
+                    android:src="@drawable/ic_more"
+
+                    android:contentDescription="More"/>
+
+            </LinearLayout>
+
+
+            <!-- ========================================= -->
+            <!-- DIVIDER                                   -->
+            <!-- ========================================= -->
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+
+                android:layout_marginTop="12dp"
+
+                android:background="@color/border_color"/>
+
+
+            <!-- ========================================= -->
+            <!-- DETAILS                                   -->
+            <!-- ========================================= -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="12dp"
+
+                android:orientation="horizontal">
+
+
+                <!-- ===================================== -->
+                <!-- BILLING TYPE                           -->
+                <!-- ===================================== -->
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+
+                    android:layout_weight="1"
+
+                    android:orientation="vertical">
+
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:text="BILLING"
+
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp"
+                        android:textStyle="bold"/>
+
+
+                    <TextView
+                        android:id="@+id/txtBenefitBillingType"
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="4dp"
+
+                        android:text="One Time"
+
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold"/>
+
+                </LinearLayout>
+
+
+                <!-- ===================================== -->
+                <!-- DEFAULT FEE                            -->
+                <!-- ===================================== -->
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+
+                    android:layout_weight="1"
+
+                    android:orientation="vertical">
+
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:text="DEFAULT FEE"
+
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp"
+                        android:textStyle="bold"/>
+
+
+                    <TextView
+                        android:id="@+id/txtBenefitFee"
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="4dp"
+
+                        android:text="Rs. 5,000.00"
+
+                        android:textColor="@color/green_light"
+                        android:textSize="13sp"
+                        android:textStyle="bold"/>
+
+                </LinearLayout>
+
+
+                <!-- ===================================== -->
+                <!-- STATUS                                 -->
+                <!-- ===================================== -->
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:gravity="end"
+
+                    android:orientation="vertical">
+
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:text="STATUS"
+
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp"
+                        android:textStyle="bold"/>
+
+
+                    <TextView
+                        android:id="@+id/txtBenefitStatus"
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="4dp"
+
+                        android:text="ACTIVE"
+
+                        android:textColor="@color/green_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+            <!-- ========================================= -->
+            <!-- DESCRIPTION                               -->
+            <!-- ========================================= -->
+
+            <TextView
+                android:id="@+id/txtBenefitDescription"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="12dp"
+
+                android:text="One-to-one personal training sessions."
+
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+
+                android:maxLines="2"
+                android:ellipsize="end"/>
+
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</FrameLayout>

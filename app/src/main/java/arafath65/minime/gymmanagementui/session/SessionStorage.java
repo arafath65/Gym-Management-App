@@ -598,6 +598,28 @@ public class SessionStorage {
 
 
     // =====================================================
+    // SECURE AUTHENTICATION TOKEN
+    // =====================================================
+
+    private static final String KEY_SESSION_TOKEN_ENCRYPTED =
+            "session_token_encrypted";
+
+    public void saveSessionToken(String sessionToken) {
+        if (sessionToken == null || sessionToken.trim().isEmpty()) {
+            preferences.edit().remove(KEY_SESSION_TOKEN_ENCRYPTED).apply();
+            return;
+        }
+        String encrypted = SessionTokenCrypto.encrypt(sessionToken.trim());
+        preferences.edit().putString(KEY_SESSION_TOKEN_ENCRYPTED, encrypted).apply();
+    }
+
+    public String getSessionToken() {
+        String encrypted = preferences.getString(KEY_SESSION_TOKEN_ENCRYPTED, null);
+        return SessionTokenCrypto.decrypt(encrypted);
+    }
+
+
+    // =====================================================
     // CLEAR SESSION / LOGOUT
     // =====================================================
 

@@ -9,6 +9,10 @@ import com.arafath65.gymManagement.exception.BadRequestException;
 import com.arafath65.gymManagement.exception.ResourceNotFoundException;
 import com.arafath65.gymManagement.repository.BranchRepository;
 import com.arafath65.gymManagement.repository.MemberRepository;
+import com.arafath65.gymManagement.entity.ManagerApproval;
+import java.util.Map;
+import java.util.Objects;
+import java.util.LinkedHashMap;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,29 +26,110 @@ import java.util.List;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-
     private final BranchRepository branchRepository;
-
     private final MemberImageStorageService memberImageStorageService;
-
+    private final ManagerApprovalService managerApprovalService;
+    private final AuditService auditService;
 
     public MemberService(
-
             MemberRepository memberRepository,
-
             BranchRepository branchRepository,
+            MemberImageStorageService memberImageStorageService,
+            ManagerApprovalService managerApprovalService,
+            AuditService auditService) {
 
-            MemberImageStorageService
-                    memberImageStorageService) {
+        this.memberRepository = memberRepository;
+        this.branchRepository = branchRepository;
+        this.memberImageStorageService = memberImageStorageService;
+        this.managerApprovalService = managerApprovalService;
+        this.auditService = auditService;
+    }
 
-        this.memberRepository =
-                memberRepository;
+    @Transactional
+    public Member updateMemberWithManagerApproval(
+            Tenant tenant,
+            Integer memberId,
+            MemberRequest request,
+            String authorizationToken
+    ) {
+        // Lock and consume the approval within this transaction.
+        ManagerApproval approval =
+                managerApprovalService.consumeApproval(
+                        authorizationToken,
+                        memberId,
+                        "MEMBER_EDIT"
+                );
 
-        this.branchRepository =
-                branchRepository;
+        if (!Objects.equals(
+                approval.getTenant().getTenantId(),
+                tenant.getTenantId()
+        )) {
+            throw new BadRequestException(
+                    "Manager authorization belongs to another gym."
+            );
+        }
 
-        this.memberImageStorageService =
-                memberImageStorageService;
+        // Capture the member's original values before updating.
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() ->
+                        new BadRequestException("Member not found.")
+                );
+
+        if (!Objects.equals(
+                member.getTenant().getTenantId(),
+                tenant.getTenantId()
+        )) {
+            throw new BadRequestException(
+                    "Member does not belong to this gym."
+            );
+        }
+
+        Map<String, Object> oldValues = memberAuditValues(member);
+
+        Member updatedMember = updateMember(
+                tenant,
+                memberId,
+                request
+        );
+
+        // Record manager-approved edit with old and new member values.
+        Map<String, Object> newValues =
+                new LinkedHashMap<>(memberAuditValues(updatedMember));
+
+        newValues.put("operation", "MEMBER_EDIT");
+        newValues.put(
+                "requestedByUserId",
+                approval.getRequester().getUserId()
+        );
+        newValues.put(
+                "requestedByUsername",
+                approval.getRequester().getUsername()
+        );
+        newValues.put(
+                "approvedByUserId",
+                approval.getApprover().getUserId()
+        );
+        newValues.put(
+                "approvedByUsername",
+                approval.getApprover().getUsername()
+        );
+
+        auditService.record(
+                tenant.getTenantId(),
+                updatedMember.getBranch().getBranchId(),
+                "MEMBERS",
+                "MANAGER_APPROVED_EDIT",
+                "MEMBER",
+                updatedMember.getMemberId(),
+                "Member edit requested by "
+                        + approval.getRequester().getUsername()
+                        + " and approved by "
+                        + approval.getApprover().getUsername(),
+                oldValues,
+                newValues
+        );
+
+        return updatedMember;
     }
 
     // UPDATE MEMBER IMAGE
@@ -677,166 +762,104 @@ public class MemberService {
 
     @Transactional
     public Member updateMember(
-
             Tenant tenant,
-
             Integer memberId,
-
-            MemberRequest request) {
-
+            MemberRequest request
+    ) {
 
         // =================================================
         // TENANT STATUS
         // =================================================
 
-        if (!Boolean.TRUE.equals(
-                tenant.getStatus())) {
-
-            throw new BadRequestException(
-                    "Tenant is inactive."
-            );
+        if (!Boolean.TRUE.equals(tenant.getStatus())) {
+            throw new BadRequestException("Tenant is inactive.");
         }
-
 
         // =================================================
         // FIND MEMBER
         // =================================================
 
-        Member member =
-                memberRepository
-                        .findById(memberId)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Member not found."
-                                )
-                        );
-
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Member not found.")
+                );
 
         // =================================================
         // VERIFY MEMBER BELONGS TO TENANT
         // =================================================
 
         if (member.getTenant() == null ||
-                member.getTenant()
-                        .getTenantId()
-                        != tenant.getTenantId()) {
+                !Objects.equals(
+                        member.getTenant().getTenantId(),
+                        tenant.getTenantId()
+                )) {
 
             throw new BadRequestException(
                     "Member does not belong to this tenant."
             );
         }
 
+        // Capture original member values before updating.
+        Map<String, Object> oldValues = memberAuditValues(member);
 
         // =================================================
         // FIND BRANCH
         // =================================================
 
-        Branch branch =
-                branchRepository
-                        .findById(
-                                request.getBranchId()
-                        )
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Branch not found."
-                                )
-                        );
-
+        Branch branch = branchRepository.findById(request.getBranchId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Branch not found.")
+                );
 
         // =================================================
         // BRANCH → TENANT
         // =================================================
 
-        if (branch.getTenant()
-                .getTenantId()
-                != tenant.getTenantId()) {
+        if (!Objects.equals(
+                branch.getTenant().getTenantId(),
+                tenant.getTenantId()
+        )) {
 
             throw new BadRequestException(
                     "Branch does not belong to this tenant."
             );
         }
 
-
         // =================================================
         // BASIC INFORMATION
         // =================================================
 
-        member.setBranch(
-                branch
-        );
+        member.setBranch(branch);
 
-
-        member.setFirstName(
-                request.getFirstName()
-        );
-
-
-        member.setLastName(
-                request.getLastName()
-        );
-
-
-        member.setFullName(
-                request.getFullName()
-        );
-
-
-        member.setGender(
-                request.getGender()
-        );
-
+        member.setFirstName(request.getFirstName());
+        member.setLastName(request.getLastName());
+        member.setFullName(request.getFullName());
+        member.setGender(request.getGender());
 
         // =================================================
         // DATE OF BIRTH
         // =================================================
 
         if (request.getDateOfBirth() != null &&
-                !request.getDateOfBirth()
-                        .trim()
-                        .isEmpty()) {
+                !request.getDateOfBirth().trim().isEmpty()) {
 
             member.setDateOfBirth(
-                    LocalDate.parse(
-                            request.getDateOfBirth()
-                    )
+                    LocalDate.parse(request.getDateOfBirth())
             );
 
         } else {
-
-            member.setDateOfBirth(
-                    null
-            );
+            member.setDateOfBirth(null);
         }
-
 
         // =================================================
         // CONTACT
         // =================================================
 
-        member.setNic(
-                request.getNic()
-        );
-
-
-        member.setMobile(
-                request.getMobile()
-        );
-
-
-        member.setEmail(
-                request.getEmail()
-        );
-
-
-        member.setAddress(
-                request.getAddress()
-        );
-
-
-        member.setCity(
-                request.getCity()
-        );
-
+        member.setNic(request.getNic());
+        member.setMobile(request.getMobile());
+        member.setEmail(request.getEmail());
+        member.setAddress(request.getAddress());
+        member.setCity(request.getCity());
 
         // =================================================
         // EMERGENCY
@@ -846,108 +869,202 @@ public class MemberService {
                 request.getEmergencyContactName()
         );
 
-
         member.setEmergencyContactMobile(
                 request.getEmergencyContactMobile()
         );
-
 
         member.setEmergencyContactRelationship(
                 request.getEmergencyContactRelationship()
         );
 
-
         // =================================================
         // HEALTH / PROFILE
         // =================================================
 
-        member.setOccupation(
-                request.getOccupation()
-        );
-
-
-        member.setBloodGroup(
-                request.getBloodGroup()
-        );
-
-
-        member.setMedicalConditions(
-                request.getMedicalConditions()
-        );
-
-
-        member.setGoal(
-                request.getGoal()
-        );
-
-
-        member.setNotes(
-                request.getNotes()
-        );
-
+        member.setOccupation(request.getOccupation());
+        member.setBloodGroup(request.getBloodGroup());
+        member.setMedicalConditions(request.getMedicalConditions());
+        member.setGoal(request.getGoal());
+        member.setNotes(request.getNotes());
 
         // =================================================
         // JOIN DATE
         // =================================================
 
         if (request.getJoinDate() != null &&
-                !request.getJoinDate()
-                        .trim()
-                        .isEmpty()) {
+                !request.getJoinDate().trim().isEmpty()) {
 
             member.setJoinDate(
-                    LocalDate.parse(
-                            request.getJoinDate()
-                    )
+                    LocalDate.parse(request.getJoinDate())
             );
 
         } else {
-
-            member.setJoinDate(
-                    null
-            );
+            member.setJoinDate(null);
         }
 
-        return memberRepository.save(
-                member
+        // =================================================
+        // SAVE MEMBER
+        // =================================================
+
+        Member savedMember = memberRepository.save(member);
+
+        // =================================================
+        // AUDIT LOG — UPDATE
+        // =================================================
+
+        auditService.record(
+                tenant.getTenantId(),
+                savedMember.getBranch().getBranchId(),
+                "MEMBERS",
+                "UPDATE",
+                "MEMBER",
+                savedMember.getMemberId(),
+                "Member updated: " + savedMember.getFullName(),
+                oldValues,
+                memberAuditValues(savedMember)
         );
+
+        return savedMember;
     }
 
     // DEACTIVATE MEMBER
+
+    // =====================================================
+    // DEACTIVATE MEMBER
+    // =====================================================
+
     @Transactional
     public void deactivateMember(
-
             Tenant tenant,
-
             Integer memberId) {
 
-        Member member =
-                memberRepository
-                        .findById(
-                                memberId
+        Member member = memberRepository
+                .findById(memberId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Member not found."
                         )
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Member not found."
-                                )
-                        );
+                );
 
-        if (member.getTenant() == null ||
-                member.getTenant()
-                        .getTenantId()
-                        != tenant.getTenantId()) {
+        if (member.getTenant() == null
+                || !Objects.equals(
+                member.getTenant().getTenantId(),
+                tenant.getTenantId()
+        )) {
+            throw new BadRequestException(
+                    "Member does not belong to this tenant."
+            );
+        }
+
+        if (!member.isStatus()) {
+            throw new BadRequestException(
+                    "Member is already deactivated."
+            );
+        }
+
+        Integer branchId = member.getBranch() != null
+                ? member.getBranch().getBranchId()
+                : null;
+
+        member.setStatus(false);
+
+        Member savedMember = memberRepository.save(member);
+
+        auditService.record(
+                tenant.getTenantId(),
+                branchId,
+                "MEMBERS",
+                "DEACTIVATE",
+                "MEMBER",
+                savedMember.getMemberId(),
+                "Member deactivated: "
+                        + savedMember.getFullName(),
+                Map.of("status", true),
+                Map.of("status", false)
+        );
+    }
+
+
+    // =====================================================
+// DEACTIVATE MEMBER WITH MANAGER APPROVAL
+// =====================================================
+
+    @Transactional
+    public void deactivateMemberWithManagerApproval(
+            Tenant tenant,
+            Integer memberId,
+            String authorizationToken) {
+
+        // Consume approval specifically for MEMBER_DEACTIVATE.
+        ManagerApproval approval =
+                managerApprovalService.consumeApproval(
+                        authorizationToken,
+                        memberId,
+                        "MEMBER_DEACTIVATE"
+                );
+
+        if (!Objects.equals(
+                approval.getTenant().getTenantId(),
+                tenant.getTenantId())) {
+
+            throw new BadRequestException(
+                    "Manager authorization belongs to another gym."
+            );
+        }
+
+        Member member = memberRepository
+                .findById(memberId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Member not found."
+                        )
+                );
+
+        if (member.getTenant() == null
+                || !Objects.equals(
+                member.getTenant().getTenantId(),
+                tenant.getTenantId())) {
 
             throw new BadRequestException(
                     "Member does not belong to this tenant."
             );
         }
 
-        member.setStatus(
-                false
-        );
+        if (!member.isStatus()) {
+            throw new BadRequestException(
+                    "Member is already deactivated."
+            );
+        }
 
-        memberRepository.save(
-                member
+        member.setStatus(false);
+
+        Member savedMember = memberRepository.save(member);
+
+        // Record the successful deactivation.
+        auditService.record(
+                tenant.getTenantId(),
+                savedMember.getBranch().getBranchId(),
+                "MEMBERS",
+                "MANAGER_APPROVED_DEACTIVATE",
+                "MEMBER",
+                savedMember.getMemberId(),
+                "Member deactivation requested by "
+                        + approval.getRequester().getUsername()
+                        + " and approved by "
+                        + approval.getApprover().getUsername(),
+                Map.of("status", true),
+                Map.of(
+                        "status", false,
+                        "operation", "MEMBER_DEACTIVATE",
+                        "requestedByUserId",
+                        approval.getRequester().getUserId(),
+                        "requestedByUsername",
+                        approval.getRequester().getUsername(),
+                        "approvedByUserId",
+                        approval.getApprover().getUserId(),
+                        "approvedByUsername",
+                        approval.getApprover().getUsername()
+                )
         );
     }
 
@@ -993,4 +1110,47 @@ public class MemberService {
 
         return memberNo;
     }
+
+
+    // =====================================================
+    // MEMBER AUDIT SNAPSHOT
+    // =====================================================
+
+    private Map<String, Object> memberAuditValues(Member member) {
+
+        Map<String, Object> values = new LinkedHashMap<>();
+
+        values.put("memberNo", member.getMemberNo());
+        values.put("firstName", member.getFirstName());
+        values.put("lastName", member.getLastName());
+        values.put("fullName", member.getFullName());
+        values.put("gender", member.getGender());
+        values.put("dateOfBirth", member.getDateOfBirth());
+        values.put("nic", member.getNic());
+        values.put("mobile", member.getMobile());
+        values.put("email", member.getEmail());
+        values.put("address", member.getAddress());
+        values.put("city", member.getCity());
+        values.put("emergencyContactName",
+                member.getEmergencyContactName());
+        values.put("emergencyContactMobile",
+                member.getEmergencyContactMobile());
+        values.put("emergencyContactRelationship",
+                member.getEmergencyContactRelationship());
+        values.put("occupation", member.getOccupation());
+        values.put("bloodGroup", member.getBloodGroup());
+        values.put("medicalConditions", member.getMedicalConditions());
+        values.put("goal", member.getGoal());
+        values.put("notes", member.getNotes());
+        values.put("joinDate", member.getJoinDate());
+        values.put("status", member.isStatus());
+
+        values.put("branchId",
+                member.getBranch() != null
+                        ? member.getBranch().getBranchId()
+                        : null);
+
+        return values;
+    }
+
 }

@@ -2,8 +2,9 @@ package com.arafath65.gymManagement.entity;
 
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(
@@ -20,7 +21,9 @@ import java.time.LocalDateTime;
 )
 public class MembershipPlan {
 
+    // =====================================================
     // ID
+    // =====================================================
 
     @Id
     @GeneratedValue(
@@ -32,9 +35,14 @@ public class MembershipPlan {
     private Integer membershipPlanId;
 
 
+    // =====================================================
     // TENANT
+    // =====================================================
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(
+            fetch = FetchType.LAZY,
+            optional = false
+    )
     @JoinColumn(
             name = "tenant_id",
             nullable = false
@@ -42,16 +50,9 @@ public class MembershipPlan {
     private Tenant tenant;
 
 
-    // BRANCH
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "branch_id"
-    )
-    private Branch branch;
-
-
-    // PLAN
+    // =====================================================
+    // PLAN CODE
+    // =====================================================
 
     @Column(
             name = "plan_code",
@@ -61,6 +62,10 @@ public class MembershipPlan {
     private String planCode;
 
 
+    // =====================================================
+    // PLAN NAME
+    // =====================================================
+
     @Column(
             name = "plan_name",
             nullable = false,
@@ -69,6 +74,10 @@ public class MembershipPlan {
     private String planName;
 
 
+    // =====================================================
+    // DESCRIPTION
+    // =====================================================
+
     @Column(
             name = "description",
             columnDefinition = "TEXT"
@@ -76,7 +85,9 @@ public class MembershipPlan {
     private String description;
 
 
+    // =====================================================
     // DURATION
+    // =====================================================
 
     @Enumerated(EnumType.STRING)
     @Column(
@@ -84,8 +95,7 @@ public class MembershipPlan {
             nullable = false,
             length = 20
     )
-    private DurationType durationType =
-            DurationType.MONTHS;
+    private DurationType durationType;
 
 
     @Column(
@@ -94,39 +104,9 @@ public class MembershipPlan {
     private Integer durationValue;
 
 
-    // PRICE
-
-    @Column(
-            name = "price",
-            nullable = false,
-            precision = 12,
-            scale = 2
-    )
-    private BigDecimal price =
-            BigDecimal.ZERO;
-
-
-    @Column(
-            name = "joining_fee",
-            nullable = false,
-            precision = 12,
-            scale = 2
-    )
-    private BigDecimal joiningFee =
-            BigDecimal.ZERO;
-
-
-    @Column(
-            name = "renewal_fee",
-            nullable = false,
-            precision = 12,
-            scale = 2
-    )
-    private BigDecimal renewalFee =
-            BigDecimal.ZERO;
-
-
+    // =====================================================
     // BILLING
+    // =====================================================
 
     @Enumerated(EnumType.STRING)
     @Column(
@@ -134,8 +114,7 @@ public class MembershipPlan {
             nullable = false,
             length = 20
     )
-    private BillingType billingType =
-            BillingType.ONE_TIME;
+    private BillingType billingType;
 
 
     @Enumerated(EnumType.STRING)
@@ -152,13 +131,53 @@ public class MembershipPlan {
     private Integer billingFrequencyValue;
 
 
+    // =====================================================
+    // ACCESS BILLING
+    // =====================================================
+
+    @Enumerated(EnumType.STRING)
+    @Column(
+            name = "access_billing_mode",
+            nullable = false,
+            length = 30
+    )
+    private AccessBillingMode accessBillingMode;
+
+
+    // =====================================================
+    // MONTHLY ACTIVATION
+    // =====================================================
+
+    @Column(
+            name = "monthly_activation_required",
+            nullable = false
+    )
+    private Boolean monthlyActivationRequired =
+            false;
+
+
+    // =====================================================
+    // DAILY CHARGE
+    // =====================================================
+
+    @Column(
+            name = "daily_charge_enabled",
+            nullable = false
+    )
+    private Boolean dailyChargeEnabled =
+            false;
+
+
+    // =====================================================
     // FREEZE
+    // =====================================================
 
     @Column(
             name = "freeze_allowed",
             nullable = false
     )
-    private Boolean freezeAllowed = true;
+    private Boolean freezeAllowed =
+            false;
 
 
     @Column(
@@ -168,16 +187,14 @@ public class MembershipPlan {
 
 
     @Column(
-            name = "freeze_fee",
-            nullable = false,
-            precision = 12,
-            scale = 2
+            name = "freeze_fee"
     )
-    private BigDecimal freezeFee =
-            BigDecimal.ZERO;
+    private java.math.BigDecimal freezeFee;
 
 
-    // ACCESS
+    // =====================================================
+    // ACCESS TYPE
+    // =====================================================
 
     @Enumerated(EnumType.STRING)
     @Column(
@@ -185,11 +202,12 @@ public class MembershipPlan {
             nullable = false,
             length = 20
     )
-    private AccessType accessType =
-            AccessType.FULL;
+    private AccessType accessType;
 
 
+    // =====================================================
     // STATUS
+    // =====================================================
 
     @Column(
             name = "status",
@@ -198,7 +216,9 @@ public class MembershipPlan {
     private Boolean status = true;
 
 
+    // =====================================================
     // AUDIT
+    // =====================================================
 
     @Column(
             name = "created_at",
@@ -214,6 +234,32 @@ public class MembershipPlan {
     private LocalDateTime updatedAt;
 
 
+    // =====================================================
+    // BRANCH ASSIGNMENTS
+    // =====================================================
+
+    @OneToMany(
+            mappedBy = "membershipPlan",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<MembershipPlanBranch>
+            branchAssignments =
+            new ArrayList<>();
+
+
+    // =====================================================
+    // CONSTRUCTOR
+    // =====================================================
+
+    public MembershipPlan() {
+    }
+
+
+    // =====================================================
+    // PRE PERSIST
+    // =====================================================
+
     @PrePersist
     protected void onCreate() {
 
@@ -222,8 +268,28 @@ public class MembershipPlan {
 
         createdAt = now;
         updatedAt = now;
+
+        if (status == null) {
+            status = true;
+        }
+
+        if (monthlyActivationRequired == null) {
+            monthlyActivationRequired = false;
+        }
+
+        if (dailyChargeEnabled == null) {
+            dailyChargeEnabled = false;
+        }
+
+        if (freezeAllowed == null) {
+            freezeAllowed = false;
+        }
     }
 
+
+    // =====================================================
+    // PRE UPDATE
+    // =====================================================
 
     @PreUpdate
     protected void onUpdate() {
@@ -233,7 +299,9 @@ public class MembershipPlan {
     }
 
 
+    // =====================================================
     // GETTERS / SETTERS
+    // =====================================================
 
     public Integer getMembershipPlanId() {
         return membershipPlanId;
@@ -241,9 +309,11 @@ public class MembershipPlan {
 
     public void setMembershipPlanId(
             Integer membershipPlanId) {
+
         this.membershipPlanId =
                 membershipPlanId;
     }
+
 
     public Tenant getTenant() {
         return tenant;
@@ -251,19 +321,11 @@ public class MembershipPlan {
 
     public void setTenant(
             Tenant tenant) {
+
         this.tenant =
                 tenant;
     }
 
-    public Branch getBranch() {
-        return branch;
-    }
-
-    public void setBranch(
-            Branch branch) {
-        this.branch =
-                branch;
-    }
 
     public String getPlanCode() {
         return planCode;
@@ -271,9 +333,11 @@ public class MembershipPlan {
 
     public void setPlanCode(
             String planCode) {
+
         this.planCode =
                 planCode;
     }
+
 
     public String getPlanName() {
         return planName;
@@ -281,9 +345,11 @@ public class MembershipPlan {
 
     public void setPlanName(
             String planName) {
+
         this.planName =
                 planName;
     }
+
 
     public String getDescription() {
         return description;
@@ -291,9 +357,11 @@ public class MembershipPlan {
 
     public void setDescription(
             String description) {
+
         this.description =
                 description;
     }
+
 
     public DurationType getDurationType() {
         return durationType;
@@ -301,9 +369,11 @@ public class MembershipPlan {
 
     public void setDurationType(
             DurationType durationType) {
+
         this.durationType =
                 durationType;
     }
+
 
     public Integer getDurationValue() {
         return durationValue;
@@ -311,39 +381,11 @@ public class MembershipPlan {
 
     public void setDurationValue(
             Integer durationValue) {
+
         this.durationValue =
                 durationValue;
     }
 
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(
-            BigDecimal price) {
-        this.price =
-                price;
-    }
-
-    public BigDecimal getJoiningFee() {
-        return joiningFee;
-    }
-
-    public void setJoiningFee(
-            BigDecimal joiningFee) {
-        this.joiningFee =
-                joiningFee;
-    }
-
-    public BigDecimal getRenewalFee() {
-        return renewalFee;
-    }
-
-    public void setRenewalFee(
-            BigDecimal renewalFee) {
-        this.renewalFee =
-                renewalFee;
-    }
 
     public BillingType getBillingType() {
         return billingType;
@@ -351,9 +393,11 @@ public class MembershipPlan {
 
     public void setBillingType(
             BillingType billingType) {
+
         this.billingType =
                 billingType;
     }
+
 
     public BillingFrequency getBillingFrequency() {
         return billingFrequency;
@@ -361,9 +405,11 @@ public class MembershipPlan {
 
     public void setBillingFrequency(
             BillingFrequency billingFrequency) {
+
         this.billingFrequency =
                 billingFrequency;
     }
+
 
     public Integer getBillingFrequencyValue() {
         return billingFrequencyValue;
@@ -371,9 +417,47 @@ public class MembershipPlan {
 
     public void setBillingFrequencyValue(
             Integer billingFrequencyValue) {
+
         this.billingFrequencyValue =
                 billingFrequencyValue;
     }
+
+
+    public AccessBillingMode getAccessBillingMode() {
+        return accessBillingMode;
+    }
+
+    public void setAccessBillingMode(
+            AccessBillingMode accessBillingMode) {
+
+        this.accessBillingMode =
+                accessBillingMode;
+    }
+
+
+    public Boolean getMonthlyActivationRequired() {
+        return monthlyActivationRequired;
+    }
+
+    public void setMonthlyActivationRequired(
+            Boolean monthlyActivationRequired) {
+
+        this.monthlyActivationRequired =
+                monthlyActivationRequired;
+    }
+
+
+    public Boolean getDailyChargeEnabled() {
+        return dailyChargeEnabled;
+    }
+
+    public void setDailyChargeEnabled(
+            Boolean dailyChargeEnabled) {
+
+        this.dailyChargeEnabled =
+                dailyChargeEnabled;
+    }
+
 
     public Boolean getFreezeAllowed() {
         return freezeAllowed;
@@ -381,9 +465,11 @@ public class MembershipPlan {
 
     public void setFreezeAllowed(
             Boolean freezeAllowed) {
+
         this.freezeAllowed =
                 freezeAllowed;
     }
+
 
     public Integer getMaxFreezeDays() {
         return maxFreezeDays;
@@ -391,19 +477,23 @@ public class MembershipPlan {
 
     public void setMaxFreezeDays(
             Integer maxFreezeDays) {
+
         this.maxFreezeDays =
                 maxFreezeDays;
     }
 
-    public BigDecimal getFreezeFee() {
+
+    public java.math.BigDecimal getFreezeFee() {
         return freezeFee;
     }
 
     public void setFreezeFee(
-            BigDecimal freezeFee) {
+            java.math.BigDecimal freezeFee) {
+
         this.freezeFee =
                 freezeFee;
     }
+
 
     public AccessType getAccessType() {
         return accessType;
@@ -411,9 +501,11 @@ public class MembershipPlan {
 
     public void setAccessType(
             AccessType accessType) {
+
         this.accessType =
                 accessType;
     }
+
 
     public Boolean getStatus() {
         return status;
@@ -421,45 +513,126 @@ public class MembershipPlan {
 
     public void setStatus(
             Boolean status) {
+
         this.status =
                 status;
     }
 
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
 
+    public List<MembershipPlanBranch>
+    getBranchAssignments() {
+
+        return branchAssignments;
+    }
+
+
+    public void setBranchAssignments(
+            List<MembershipPlanBranch>
+                    branchAssignments) {
+
+        this.branchAssignments =
+                branchAssignments;
+    }
+
+
+    // =====================================================
+    // HELPER METHODS
+    // =====================================================
+
+    public void addBranchAssignment(
+            MembershipPlanBranch assignment) {
+
+        branchAssignments.add(
+                assignment
+        );
+
+        assignment.setMembershipPlan(
+                this
+        );
+    }
+
+
+    public void removeBranchAssignment(
+            MembershipPlanBranch assignment) {
+
+        branchAssignments.remove(
+                assignment
+        );
+
+        assignment.setMembershipPlan(
+                null
+        );
+    }
+
+
+    // =====================================================
     // ENUMS
+    // =====================================================
 
     public enum DurationType {
+
         DAYS,
+
         MONTHS,
+
         YEARS,
+
         UNLIMITED
     }
 
+
     public enum BillingType {
+
         ONE_TIME,
+
         RECURRING,
+
         INSTALLMENT
     }
 
+
     public enum BillingFrequency {
+
         WEEKLY,
+
         MONTHLY,
+
         QUARTERLY,
+
         YEARLY,
+
         CUSTOM
     }
 
+
+    public enum AccessBillingMode {
+
+        FIXED_TERM,
+
+        MONTHLY_CONTRACT,
+
+        MONTHLY_FLEX,
+
+        DAILY
+    }
+
+
     public enum AccessType {
+
         FULL,
+
         OFF_PEAK,
+
         CUSTOM
     }
 }

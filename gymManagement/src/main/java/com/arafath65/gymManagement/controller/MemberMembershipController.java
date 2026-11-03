@@ -1,11 +1,13 @@
 package com.arafath65.gymManagement.controller;
 
+import com.arafath65.gymManagement.dto.request.MemberMembershipPlanRequest;
 import com.arafath65.gymManagement.dto.request.MemberMembershipRequest;
 import com.arafath65.gymManagement.dto.response.MemberMembershipResponse;
 import com.arafath65.gymManagement.entity.Branch;
 import com.arafath65.gymManagement.entity.Member;
 import com.arafath65.gymManagement.entity.MemberMembership;
 import com.arafath65.gymManagement.entity.MembershipPlan;
+import com.arafath65.gymManagement.entity.MembershipPlanBranch;
 import com.arafath65.gymManagement.entity.RegisteredDevice;
 import com.arafath65.gymManagement.entity.Tenant;
 import com.arafath65.gymManagement.exception.BadRequestException;
@@ -180,7 +182,12 @@ public class MemberMembershipController {
                         );
 
 
-        if (plan.getTenant()
+        // -------------------------------------------------
+        // PLAN → TENANT
+        // -------------------------------------------------
+
+        if (plan.getTenant() == null
+                || plan.getTenant()
                 .getTenantId()
                 != tenant.getTenantId()) {
 
@@ -189,6 +196,10 @@ public class MemberMembershipController {
             );
         }
 
+
+        // -------------------------------------------------
+        // PLAN STATUS
+        // -------------------------------------------------
 
         if (!Boolean.TRUE.equals(
                 plan.getStatus()
@@ -204,13 +215,30 @@ public class MemberMembershipController {
         // PLAN → BRANCH
         // -------------------------------------------------
 
-        if (plan.getBranch() != null
-                && plan.getBranch()
-                .getBranchId()
-                != branch.getBranchId()) {
+        MembershipPlanBranch planBranch =
+                membershipPlanService
+                        .findBranchAssignment(
+                                tenant.getTenantId(),
+                                plan.getMembershipPlanId(),
+                                branch.getBranchId()
+                        )
+                        .orElseThrow(() ->
+                                new BadRequestException(
+                                        "Membership plan is not available for this branch."
+                                )
+                        );
+
+
+        // -------------------------------------------------
+        // PLAN BRANCH STATUS
+        // -------------------------------------------------
+
+        if (!Boolean.TRUE.equals(
+                planBranch.getStatus()
+        )) {
 
             throw new BadRequestException(
-                    "Membership plan is not available for this branch."
+                    "Membership plan is inactive for this branch."
             );
         }
 
@@ -248,10 +276,37 @@ public class MemberMembershipController {
         );
 
 
+        // -------------------------------------------------
+        // BRANCH-SPECIFIC PRICING
+        // -------------------------------------------------
+
+        membership.setPlanPrice(
+                planBranch.getPrice()
+        );
+
+
+        membership.setJoiningFee(
+                planBranch.getJoiningFee()
+        );
+
+
+        membership.setRenewalFee(
+                planBranch.getRenewalFee()
+        );
+
+
+        // -------------------------------------------------
+        // DISCOUNT
+        // -------------------------------------------------
+
         membership.setDiscountAmount(
                 request.getDiscountAmount()
         );
 
+
+        // -------------------------------------------------
+        // NOTES
+        // -------------------------------------------------
 
         membership.setNotes(
                 request.getNotes()
@@ -317,11 +372,6 @@ public class MemberMembershipController {
 
             @RequestParam(required = false)
             Boolean status) {
-
-
-        // -------------------------------------------------
-        // VALIDATE TENANT + DEVICE
-        // -------------------------------------------------
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -488,7 +538,6 @@ public class MemberMembershipController {
             @PathVariable
             MemberMembership.MembershipState membershipState) {
 
-
         Tenant tenant =
                 validateTenantAndDevice(
                         tenantNo,
@@ -529,7 +578,9 @@ public class MemberMembershipController {
     // GET MEMBERSHIPS BY BRANCH AND STATE
     // =====================================================
 
-    @GetMapping("/branch/{branchId}/state/{membershipState}")
+    @GetMapping(
+            "/branch/{branchId}/state/{membershipState}"
+    )
     public ResponseEntity<
             ApiResponse<List<MemberMembershipResponse>>>
     getBranchMembershipsByState(
@@ -545,7 +596,6 @@ public class MemberMembershipController {
 
             @PathVariable
             MemberMembership.MembershipState membershipState) {
-
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -607,7 +657,6 @@ public class MemberMembershipController {
 
             @PathVariable
             Integer membershipId) {
-
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -671,7 +720,6 @@ public class MemberMembershipController {
             @PathVariable
             Integer memberId) {
 
-
         Tenant tenant =
                 validateTenantAndDevice(
                         tenantNo,
@@ -707,6 +755,72 @@ public class MemberMembershipController {
         );
     }
 
+    // =====================================================
+// ASSIGN / CHANGE MEMBERSHIP PLAN
+// =====================================================
+
+    @PutMapping("/{membershipId}/plan")
+    public ResponseEntity<
+            ApiResponse<MemberMembershipResponse>>
+    assignMembershipPlan(
+
+            @RequestHeader("X-Tenant-No")
+            String tenantNo,
+
+            @RequestHeader("X-Device-Token")
+            String deviceToken,
+
+            @PathVariable
+            Integer membershipId,
+
+            @Valid
+            @RequestBody
+            MemberMembershipPlanRequest request) {
+
+        // -------------------------------------------------
+        // VALIDATE TENANT + DEVICE
+        // -------------------------------------------------
+
+        Tenant tenant =
+                validateTenantAndDevice(
+                        tenantNo,
+                        deviceToken
+                );
+
+
+        // -------------------------------------------------
+        // ASSIGN PLAN
+        // -------------------------------------------------
+
+        MemberMembership updatedMembership =
+                memberMembershipService
+                        .assignMembershipPlan(
+                                tenant.getTenantId(),
+                                membershipId,
+                                request.getMembershipPlanId(),
+                                request.getStartDate(),
+                                request.getSettlementType(),
+                                request.getSettlementAmount(),
+                                request.getSettlementReason(),
+                                request.getNotes()
+                        );
+
+
+        // -------------------------------------------------
+        // RESPONSE
+        // -------------------------------------------------
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Membership plan assigned successfully.",
+                        toResponse(
+                                updatedMembership
+                        )
+                )
+        );
+    }
+
 
     // =====================================================
     // DEACTIVATE MEMBERSHIP
@@ -725,7 +839,6 @@ public class MemberMembershipController {
 
             @PathVariable
             Integer membershipId) {
-
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -792,7 +905,6 @@ public class MemberMembershipController {
             @RequestHeader("X-Device-Token")
             String deviceToken) {
 
-
         Tenant tenant =
                 validateTenantAndDevice(
                         tenantNo,
@@ -839,7 +951,6 @@ public class MemberMembershipController {
 
             @PathVariable
             Integer membershipId) {
-
 
         Tenant tenant =
                 validateTenantAndDevice(
@@ -920,7 +1031,6 @@ public class MemberMembershipController {
                             .getBranchId()
             );
 
-
             response.setBranchName(
                     membership.getBranch()
                             .getBranchName()
@@ -944,12 +1054,10 @@ public class MemberMembershipController {
                             .getMembershipPlanId()
             );
 
-
             response.setPlanCode(
                     membership.getMembershipPlan()
                             .getPlanCode()
             );
-
 
             response.setPlanName(
                     membership.getMembershipPlan()
@@ -1048,7 +1156,7 @@ public class MemberMembershipController {
 
 
     // =====================================================
-    // VALIDATE BRANCH
+    // VALIDATE BRANCH BY ID
     // =====================================================
 
     private void validateBranch(
@@ -1071,6 +1179,10 @@ public class MemberMembershipController {
         );
     }
 
+
+    // =====================================================
+    // VALIDATE BRANCH
+    // =====================================================
 
     private void validateBranch(
             Tenant tenant,
@@ -1104,7 +1216,6 @@ public class MemberMembershipController {
     private Tenant validateTenantAndDevice(
             String tenantNo,
             String deviceToken) {
-
 
         // -------------------------------------------------
         // FIND TENANT

@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -109,6 +110,8 @@ public class AddMemberActivity extends AppCompatActivity {
 
     private TextInputEditText txtBranch;
     private TextInputEditText txtJoinDate;
+
+    private String managerAuthorizationToken;
 
 
     // =====================================================
@@ -244,6 +247,8 @@ public class AddMemberActivity extends AppCompatActivity {
                                 "memberId",
                                 0
                         );
+
+        managerAuthorizationToken = getIntent().getStringExtra("managerAuthorizationToken");
 
 
         setupButtons();
@@ -1473,7 +1478,8 @@ public class AddMemberActivity extends AppCompatActivity {
                             tenantNo,
                             deviceToken,
                             memberId,
-                            request
+                            request,
+                            managerAuthorizationToken
                     )
                     .enqueue(
                             new Callback<

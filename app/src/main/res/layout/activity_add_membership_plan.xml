@@ -1,0 +1,1078 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:fillViewport="true"
+    android:background="@color/background_dark">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:orientation="vertical"
+        android:padding="28dp">
+
+
+        <!-- ================================================= -->
+        <!-- HEADER                                            -->
+        <!-- ================================================= -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="Add Membership Plan"
+
+                    android:textColor="@color/text_primary"
+                    android:textSize="25sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="4dp"
+
+                    android:text="Create a membership plan with pricing, billing and access options."
+
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"/>
+
+            </LinearLayout>
+
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelMembershipPlan"
+
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+
+                android:text="Cancel"
+                android:textAllCaps="false"
+
+                android:textColor="@color/text_primary"
+
+                app:backgroundTint="@color/login_card"
+                app:strokeColor="@color/login_stroke"
+                app:strokeWidth="1dp"/>
+
+        </LinearLayout>
+
+
+        <!-- ================================================= -->
+        <!-- BASIC INFORMATION                                 -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="28dp"
+
+            android:text="Basic Information"
+
+            android:textColor="@color/green_primary"
+            android:textSize="17sp"
+            android:textStyle="bold"/>
+
+
+        <!-- ================================================= -->
+        <!-- BRANCH SELECTION                                  -->
+        <!-- ================================================= -->
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPlanBranches"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            app:cardBackgroundColor="@color/login_card"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/login_stroke"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:orientation="vertical"
+                android:padding="16dp">
+
+
+                <!-- ========================================= -->
+                <!-- TITLE                                      -->
+                <!-- ========================================= -->
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="Branches"
+
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"/>
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="3dp"
+
+                    android:text="Select the branches where this plan will be available."
+
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"/>
+
+
+                <!-- ========================================= -->
+                <!-- ALL BRANCHES                               -->
+                <!-- ========================================= -->
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/checkAllBranches"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="10dp"
+
+                    android:text="All Branches"
+
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold"
+
+                    app:buttonTint="@color/green_primary"/>
+
+
+                <!-- ========================================= -->
+                <!-- DIVIDER                                    -->
+                <!-- ========================================= -->
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="4dp"
+
+                    android:background="@color/login_stroke"/>
+
+
+                <!-- ========================================= -->
+                <!-- DYNAMIC BRANCH CHECKBOXES                  -->
+                <!-- ========================================= -->
+
+                <LinearLayout
+                    android:id="@+id/layoutBranchList"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:orientation="vertical"/>
+
+
+                <!-- ========================================= -->
+                <!-- NO BRANCHES                                -->
+                <!-- ========================================= -->
+
+                <TextView
+                    android:id="@+id/txtNoBranches"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:gravity="center"
+
+                    android:padding="20dp"
+
+                    android:text="No active branches available."
+
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <!-- ================================================= -->
+        <!-- PLAN CODE                                         -->
+        <!-- ================================================= -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutPlanCode"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            android:hint="Plan Code"
+
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtPlanCode"
+
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+
+                android:singleLine="true"
+
+                android:textColor="@color/text_primary"
+
+                android:background="@null"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- ================================================= -->
+        <!-- PLAN NAME                                         -->
+        <!-- ================================================= -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutPlanName"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            android:hint="Plan Name"
+
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtPlanName"
+
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+
+                android:singleLine="true"
+
+                android:textColor="@color/text_primary"
+
+                android:background="@null"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- ================================================= -->
+        <!-- DESCRIPTION                                       -->
+        <!-- ================================================= -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutPlanDescription"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            android:hint="Description"
+
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtPlanDescription"
+
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+
+                android:gravity="top"
+
+                android:inputType="textMultiLine"
+                android:maxLines="4"
+
+                android:textColor="@color/text_primary"
+
+                android:background="@null"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- ================================================= -->
+        <!-- DURATION                                          -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="30dp"
+
+            android:text="Duration &amp; Pricing"
+
+            android:textColor="@color/green_primary"
+            android:textSize="17sp"
+            android:textStyle="bold"/>
+
+
+        <!-- ================================================= -->
+        <!-- DURATION TYPE                                     -->
+        <!-- ================================================= -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutDurationType"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            android:hint="Duration Type"
+
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <AutoCompleteTextView
+                android:id="@+id/txtDurationType"
+
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+
+                android:inputType="none"
+                android:focusable="true"
+                android:clickable="true"
+
+                android:textColor="@color/text_primary"
+
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- ================================================= -->
+        <!-- DURATION VALUE                                    -->
+        <!-- ================================================= -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutDurationValue"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            android:hint="Duration Value"
+
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtDurationValue"
+
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+
+                android:inputType="number"
+                android:singleLine="true"
+
+                android:textColor="@color/text_primary"
+
+                android:background="@null"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- ================================================= -->
+        <!-- DEFAULT PRICING                                  -->
+        <!-- ================================================= -->
+
+        <LinearLayout
+            android:id="@+id/layoutDefaultPricing"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:orientation="vertical">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="20dp"
+
+                android:text="Default Pricing"
+
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"/>
+
+
+            <!-- PRICE -->
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutDefaultPrice"
+
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="10dp"
+
+                android:hint="Default Price"
+
+                app:boxBackgroundColor="@color/login_card"
+                app:boxStrokeColor="@color/login_stroke"
+                app:hintTextColor="@color/hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/txtDefaultPrice"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+
+                    android:inputType="numberDecimal"
+                    android:singleLine="true"
+
+                    android:textColor="@color/text_primary"
+
+                    android:background="@null"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <!-- JOINING FEE -->
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutDefaultJoiningFee"
+
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="10dp"
+
+                android:hint="Default Joining Fee"
+
+                app:boxBackgroundColor="@color/login_card"
+                app:boxStrokeColor="@color/login_stroke"
+                app:hintTextColor="@color/hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/txtDefaultJoiningFee"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+
+                    android:inputType="numberDecimal"
+                    android:singleLine="true"
+
+                    android:textColor="@color/text_primary"
+
+                    android:background="@null"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <!-- RENEWAL FEE -->
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutDefaultRenewalFee"
+
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="10dp"
+
+                android:hint="Default Renewal Fee"
+
+                app:boxBackgroundColor="@color/login_card"
+                app:boxStrokeColor="@color/login_stroke"
+                app:hintTextColor="@color/hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/txtDefaultRenewalFee"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+
+                    android:inputType="numberDecimal"
+                    android:singleLine="true"
+
+                    android:textColor="@color/text_primary"
+
+                    android:background="@null"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+
+        <!-- ================================================= -->
+        <!-- BRANCH SPECIFIC PRICING                           -->
+        <!-- ================================================= -->
+
+        <LinearLayout
+            android:id="@+id/layoutBranchPricing"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:orientation="vertical"
+
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="20dp"
+
+                android:text="Branch Pricing"
+
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"/>
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="3dp"
+
+                android:text="Set pricing separately for each selected branch."
+
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"/>
+
+
+            <!-- ============================================= -->
+            <!-- DYNAMIC BRANCH PRICING CARDS                   -->
+            <!-- ============================================= -->
+
+            <LinearLayout
+                android:id="@+id/layoutBranchPricingList"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:orientation="vertical"/>
+
+        </LinearLayout>
+
+
+        <!-- ================================================= -->
+        <!-- BILLING                                           -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="30dp"
+
+            android:text="Billing"
+
+            android:textColor="@color/green_primary"
+            android:textSize="17sp"
+            android:textStyle="bold"/>
+
+
+        <!-- BILLING TYPE -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutBillingType"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            android:hint="Billing Type"
+
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <AutoCompleteTextView
+                android:id="@+id/txtBillingType"
+
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+
+                android:inputType="none"
+                android:focusable="true"
+                android:clickable="true"
+
+                android:textColor="@color/text_primary"
+
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- BILLING FREQUENCY -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutBillingFrequency"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            android:hint="Billing Frequency"
+
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <AutoCompleteTextView
+                android:id="@+id/txtBillingFrequency"
+
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+
+                android:inputType="none"
+                android:focusable="true"
+                android:clickable="true"
+
+                android:textColor="@color/text_primary"
+
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- BILLING FREQUENCY VALUE -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutBillingFrequencyValue"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            android:hint="Billing Frequency Value"
+
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtBillingFrequencyValue"
+
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+
+                android:inputType="number"
+                android:singleLine="true"
+
+                android:textColor="@color/text_primary"
+
+                android:background="@null"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- ACCESS BILLING MODE -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutAccessBillingMode"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            android:hint="Access Billing Mode"
+
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <AutoCompleteTextView
+                android:id="@+id/txtAccessBillingMode"
+
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+
+                android:inputType="none"
+                android:focusable="true"
+                android:clickable="true"
+
+                android:textColor="@color/text_primary"
+
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- ================================================= -->
+        <!-- ACCESS                                            -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="30dp"
+
+            android:text="Access"
+
+            android:textColor="@color/green_primary"
+            android:textSize="17sp"
+            android:textStyle="bold"/>
+
+
+        <!-- MONTHLY ACTIVATION -->
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchMonthlyActivation"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="10dp"
+
+            android:text="Monthly Activation Required"
+
+            android:textColor="@color/text_primary"/>
+
+
+        <!-- DAILY CHARGE -->
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchDailyCharge"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:text="Daily Charge Enabled"
+
+            android:textColor="@color/text_primary"/>
+
+
+        <!-- ACCESS TYPE -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutAccessType"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="10dp"
+
+            android:hint="Access Type"
+
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <AutoCompleteTextView
+                android:id="@+id/txtAccessType"
+
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+
+                android:inputType="none"
+                android:focusable="true"
+                android:clickable="true"
+
+                android:textColor="@color/text_primary"
+
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- ================================================= -->
+        <!-- FREEZE                                            -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="30dp"
+
+            android:text="Freeze"
+
+            android:textColor="@color/green_primary"
+            android:textSize="17sp"
+            android:textStyle="bold"/>
+
+
+        <!-- FREEZE ALLOWED -->
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchFreezeAllowed"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="10dp"
+
+            android:text="Freeze Allowed"
+
+            android:textColor="@color/text_primary"/>
+
+
+        <!-- MAX FREEZE DAYS -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutMaxFreezeDays"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="10dp"
+
+            android:hint="Maximum Freeze Days"
+
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtMaxFreezeDays"
+
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+
+                android:inputType="number"
+                android:singleLine="true"
+
+                android:textColor="@color/text_primary"
+
+                android:background="@null"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- FREEZE FEE -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutFreezeFee"
+
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            android:hint="Freeze Fee"
+
+            app:boxBackgroundColor="@color/login_card"
+            app:boxStrokeColor="@color/login_stroke"
+            app:hintTextColor="@color/hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtFreezeFee"
+
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+
+                android:inputType="numberDecimal"
+                android:singleLine="true"
+
+                android:textColor="@color/text_primary"
+
+                android:background="@null"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- ================================================= -->
+        <!-- BENEFITS                                          -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="30dp"
+
+            android:text="Benefits"
+
+            android:textColor="@color/green_primary"
+            android:textSize="17sp"
+            android:textStyle="bold"/>
+
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardMembershipPlanBenefits"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="14dp"
+
+            app:cardBackgroundColor="@color/login_card"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/login_stroke"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:orientation="vertical"
+                android:padding="16dp">
+
+
+                <!-- ========================================= -->
+                <!-- TITLE                                      -->
+                <!-- ========================================= -->
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="Included Benefits"
+
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"/>
+
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="3dp"
+
+                    android:text="Select the benefits included with this membership plan."
+
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"/>
+
+
+                <!-- ========================================= -->
+                <!-- BENEFIT LIST                               -->
+                <!-- ========================================= -->
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerMembershipPlanBenefits"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="12dp"
+
+                    android:nestedScrollingEnabled="false"
+
+                    android:overScrollMode="never"/>
+
+
+                <!-- ========================================= -->
+                <!-- NO BENEFITS                                -->
+                <!-- ========================================= -->
+
+                <TextView
+                    android:id="@+id/txtNoMembershipPlanBenefits"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:gravity="center"
+
+                    android:padding="20dp"
+
+                    android:text="No active benefits available."
+
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <!-- ================================================= -->
+        <!-- SAVE                                               -->
+        <!-- ================================================= -->
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaveMembershipPlan"
+
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="20dp"
+
+            android:text="Save Membership Plan"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+
+            app:backgroundTint="@color/green_primary"/>
+
+    </LinearLayout>
+
+</ScrollView>
